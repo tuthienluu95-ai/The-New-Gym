@@ -28,7 +28,7 @@ export default async function LichNgayPage({ searchParams }) {
 
   const { data: clubs } = await sb.from('clubs').select('id, ten_club').order('ma_club');
   let q = sb.from('lich_lop')
-    .select('id, gio_bat_dau, gio_ket_thuc, ten_lop, clubs:club_id ( ten_club ), nhan_vien:nv_id ( ma_nv, ho_ten )')
+    .select('id, gio_bat_dau, gio_ket_thuc, ten_lop, clubs!club_id ( ten_club ), nhan_vien!nv_id ( ma_nv, ho_ten )')
     .eq('thu', thu).eq('dang_ap_dung', true).order('gio_bat_dau');
   if (club) q = q.eq('club_id', club);
   const { data: lich } = await q;

@@ -36,3 +36,10 @@ export async function xoaLich(formData) {
   await sb.from('lich_lop').delete().eq('id', formData.get('id'));
   revalidatePath('/admin/lich');
 }
+
+export async function khoaLich(formData) {
+  requireAdmin();
+  const sb = supabaseAdmin();
+  await sb.from('lich_lop').update({ dang_ap_dung: formData.get('to') === 'true' }).eq('id', formData.get('id'));
+  revalidatePath('/admin/lich');
+}
