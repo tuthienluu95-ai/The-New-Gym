@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 
 export function middleware(req) {
   const { pathname } = req.nextUrl;
+  const requestHeaders = new Headers(req.headers);
+  requestHeaders.set('x-tng-path', pathname);
+
   if (pathname.startsWith('/admin') && !pathname.startsWith('/admin/login')) {
     const c = req.cookies.get('tng_admin')?.value;
     if (!c) {
@@ -10,7 +13,7 @@ export function middleware(req) {
       return NextResponse.redirect(url);
     }
   }
-  return NextResponse.next();
+  return NextResponse.next({ request: { headers: requestHeaders } });
 }
 
 export const config = { matcher: ['/admin/:path*'] };
