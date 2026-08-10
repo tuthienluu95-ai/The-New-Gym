@@ -74,3 +74,10 @@ tr:last-child td{border-bottom:none}
 .toolbar{display:flex;gap:10px;align-items:end;flex-wrap:wrap;margin-bottom:16px}
 .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;align-items:end}
 @media print{.noprint{display:none}.nav{display:none}}
+
+.mode{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:14px;padding:6px 14px;border-radius:999px}
+.mode.in{background:var(--accent-weak);color:var(--accent-dark)}
+.mode.out{background:var(--warn-weak);color:var(--warn)}
+.class-btn.locked{opacity:.6;cursor:not-allowed;background:#F3F5F7}
+.class-btn.locked:hover{border-color:var(--border);background:#F3F5F7}
+.warn-text{color:var(--warn);font-weight:600}
