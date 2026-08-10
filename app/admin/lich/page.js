@@ -49,12 +49,15 @@ export default async function LichPage({ searchParams }) {
 
       <div className="card">
         <div className="toolbar">
-          <form>
-            <label>Lọc theo club</label>
-            <select name="club" defaultValue={filterClub} onChange={(e) => e.target.form.submit()}>
-              <option value="">Tất cả club</option>
-              {(clubs || []).map((c) => <option key={c.id} value={c.id}>{c.ten_club}</option>)}
-            </select>
+          <form className="form-grid">
+            <div>
+              <label>Lọc theo club</label>
+              <select name="club" defaultValue={filterClub}>
+                <option value="">Tất cả club</option>
+                {(clubs || []).map((c) => <option key={c.id} value={c.id}>{c.ten_club}</option>)}
+              </select>
+            </div>
+            <button className="btn">Lọc</button>
           </form>
         </div>
         <table>

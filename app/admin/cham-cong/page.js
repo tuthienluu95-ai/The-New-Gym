@@ -21,9 +21,12 @@ export default async function ChamCongPage({ searchParams }) {
       <h1>Chấm công</h1>
       <div className="card">
         <div className="toolbar">
-          <form>
-            <label>Chọn ngày</label>
-            <input type="date" name="ngay" defaultValue={ngay} onChange={(e) => e.target.form.submit()} />
+          <form className="form-grid">
+            <div>
+              <label>Chọn ngày</label>
+              <input type="date" name="ngay" defaultValue={ngay} />
+            </div>
+            <button className="btn">Xem</button>
           </form>
         </div>
         <table>
