@@ -13,7 +13,7 @@ export default function ReportChart({ daily, topPay }) {
           <ResponsiveContainer>
             <LineChart data={daily} margin={{ top: 8, right: 16, left: -12, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#E3E9EF" />
-              <XAxis dataKey="day" tick={{ fontSize: 12 }} />
+              <XAxis dataKey="label" tick={{ fontSize: 12 }} />
               <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
               <Tooltip formatter={(v) => [`${v} ca`, 'Số ca']} labelFormatter={(d) => `Ngày ${d}`} />
               <Line type="monotone" dataKey="so" stroke={BLUE} strokeWidth={2.5} dot={{ r: 2 }} />

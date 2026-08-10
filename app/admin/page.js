@@ -11,7 +11,8 @@ export default async function Dashboard({ searchParams }) {
   requireAdmin();
   const sb = supabaseAdmin();
   const { dateStr } = vnParts();
-  const thang = searchParams?.thang || dateStr.slice(0, 7);
+  const tu = searchParams?.tu || (dateStr.slice(0, 7) + '-01');
+  const den = searchParams?.den || dateStr;
 
   const [clubs, nv, lich, homNay, dangDay] = await Promise.all([
     sb.from('clubs').select('id', { count: 'exact', head: true }),
@@ -21,7 +22,7 @@ export default async function Dashboard({ searchParams }) {
     sb.from('cham_cong').select('id', { count: 'exact', head: true }).eq('trang_thai', 'dang_lam').eq('ngay', dateStr),
   ]);
 
-  const report = await buildReport(sb, thang);
+  const report = await buildReport(sb, tu, den);
   const topPay = report.list.slice(0, 10).map((r) => ({ ten: r.ho_ten, tien: r.tong_tien })).reverse();
 
   const M = [
@@ -42,14 +43,12 @@ export default async function Dashboard({ searchParams }) {
       <div className="card">
         <div className="toolbar" style={{ justifyContent: 'space-between' }}>
           <form className="form-grid">
-            <div>
-              <label>Báo cáo tháng</label>
-              <input type="month" name="thang" defaultValue={thang} />
-            </div>
-            <button className="btn">Xem</button>
+            <div><label>Từ ngày</label><input type="date" name="tu" defaultValue={tu} /></div>
+            <div><label>Đến ngày</label><input type="date" name="den" defaultValue={den} /></div>
+            <button className="btn">Xem báo cáo</button>
           </form>
           <div style={{ display: 'flex', alignItems: 'end' }}>
-            <a className="btn primary" href={`/api/admin/report-export?thang=${thang}`}>Xuất Excel</a>
+            <a className="btn primary" href={`/api/admin/report-export?tu=${tu}&den=${den}`}>Xuất Excel</a>
           </div>
         </div>
         <div className="grid">
@@ -63,11 +62,11 @@ export default async function Dashboard({ searchParams }) {
       <ReportChart daily={report.daily} topPay={topPay} />
 
       <div className="card">
-        <h2>Bảng công theo giáo viên · tháng {thang}</h2>
+        <h2>Bảng công theo giáo viên · {tu} → {den}</h2>
         <table>
           <thead><tr><th>Mã</th><th>Giáo viên</th><th>Số ca</th><th>Trễ</th><th>Thù lao/ca</th><th>Tổng tiền</th></tr></thead>
           <tbody>
-            {report.list.length === 0 && <tr><td colSpan="6" className="muted">Chưa có dữ liệu chấm công trong tháng này.</td></tr>}
+            {report.list.length === 0 && <tr><td colSpan="6" className="muted">Chưa có dữ liệu chấm công trong khoảng ngày này.</td></tr>}
             {report.list.map((r) => (
               <tr key={r.ma_nv}>
                 <td><b>{r.ma_nv}</b></td>
@@ -79,13 +78,7 @@ export default async function Dashboard({ searchParams }) {
               </tr>
             ))}
             {report.list.length > 0 && (
-              <tr>
-                <td colSpan="2"><b>TỔNG</b></td>
-                <td><b>{report.totals.so_ca}</b></td>
-                <td><b>{report.totals.so_tre}</b></td>
-                <td></td>
-                <td><b>{vnd(report.totals.tong_tien)}</b></td>
-              </tr>
+              <tr><td colSpan="2"><b>TỔNG</b></td><td><b>{report.totals.so_ca}</b></td><td><b>{report.totals.so_tre}</b></td><td></td><td><b>{vnd(report.totals.tong_tien)}</b></td></tr>
             )}
           </tbody>
         </table>
@@ -98,11 +91,7 @@ export default async function Dashboard({ searchParams }) {
             <thead><tr><th>Giáo viên</th><th>Số ca trễ</th><th>Các ngày trễ</th></tr></thead>
             <tbody>
               {report.list.filter((r) => r.ngay_tre.length > 0).map((r) => (
-                <tr key={r.ma_nv}>
-                  <td>{r.ma_nv} · {r.ho_ten}</td>
-                  <td><span className="tag warn">{r.so_tre}</span></td>
-                  <td className="muted">{r.ngay_tre.join(', ')}</td>
-                </tr>
+                <tr key={r.ma_nv}><td>{r.ma_nv} · {r.ho_ten}</td><td><span className="tag warn">{r.so_tre}</span></td><td className="muted">{r.ngay_tre.join(', ')}</td></tr>
               ))}
             </tbody>
           </table>
