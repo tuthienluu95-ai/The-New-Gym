@@ -34,7 +34,7 @@ export default async function ChamCongPage({ searchParams }) {
           <tbody>
             {(rows || []).length === 0 && <tr><td colSpan="7" className="muted">Không có lượt chấm công nào trong ngày này.</td></tr>}
             {(rows || []).map((r) => {
-              const quenRa = !r.gio_ra && r.ngay < today;
+              const quenRa = r.trang_thai === 'quen_ra' || (!r.gio_ra && r.ngay < today);
               return (
                 <tr key={r.id}>
                   <td><b>{r.nhan_vien?.ma_nv}</b></td>

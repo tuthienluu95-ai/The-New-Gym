@@ -30,20 +30,24 @@ export async function POST(req) {
   }
 
   const sessionToken = signToken({ nv_id: nv.id, club_id: club.id }, 300);
+  const { dateStr, thu } = vnParts();
 
   const { data: open } = await sb.from('cham_cong')
-    .select('id, gio_vao, lich_lop!lich_lop_id ( ten_lop )')
-    .eq('nv_id', nv.id).is('gio_ra', null)
+    .select('id, ngay, gio_vao, lich_lop!lich_lop_id ( ten_lop )')
+    .eq('nv_id', nv.id).eq('trang_thai', 'dang_lam')
     .order('gio_vao', { ascending: false }).limit(1).maybeSingle();
 
   if (open) {
-    return NextResponse.json({
-      ok: true, sessionToken, ho_ten: nv.ho_ten, firstTime, mode: 'checkout',
-      openSession: { gio_vao: open.gio_vao, ten_lop: open.lich_lop?.ten_lop || 'Lớp khác' },
-    });
+    if (open.ngay < dateStr) {
+      await sb.from('cham_cong').update({ trang_thai: 'quen_ra' }).eq('id', open.id);
+    } else {
+      return NextResponse.json({
+        ok: true, sessionToken, ho_ten: nv.ho_ten, firstTime, mode: 'checkout',
+        openSession: { gio_vao: open.gio_vao, ten_lop: open.lich_lop?.ten_lop || 'Lớp khác' },
+      });
+    }
   }
 
-  const { thu } = vnParts();
   const { data: classes } = await sb.from('lich_lop')
     .select('id, ten_lop, gio_bat_dau, gio_ket_thuc')
     .eq('club_id', club.id).eq('nv_id', nv.id).eq('thu', thu).eq('dang_ap_dung', true)

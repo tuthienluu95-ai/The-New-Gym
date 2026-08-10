@@ -11,7 +11,7 @@ export async function POST(req) {
 
   const sb = supabaseAdmin();
   const { data: open } = await sb.from('cham_cong')
-    .select('id').eq('nv_id', p.nv_id).is('gio_ra', null)
+    .select('id').eq('nv_id', p.nv_id).eq('trang_thai', 'dang_lam')
     .order('gio_vao', { ascending: false }).limit(1).maybeSingle();
   if (!open) return NextResponse.json({ ok: false, error: 'Không có buổi nào đang mở' }, { status: 400 });
 

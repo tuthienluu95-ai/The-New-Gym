@@ -13,7 +13,7 @@ export default async function Dashboard() {
     sb.from('nhan_vien').select('id', { count: 'exact', head: true }).eq('trang_thai', 'dang_lam'),
     sb.from('lich_lop').select('id', { count: 'exact', head: true }).eq('dang_ap_dung', true),
     sb.from('cham_cong').select('id', { count: 'exact', head: true }).eq('ngay', dateStr),
-    sb.from('cham_cong').select('id', { count: 'exact', head: true }).is('gio_ra', null),
+    sb.from('cham_cong').select('id', { count: 'exact', head: true }).eq('trang_thai', 'dang_lam').eq('ngay', dateStr),
   ]);
   const M = [
     { n: clubs.count ?? 0, l: 'Club' },

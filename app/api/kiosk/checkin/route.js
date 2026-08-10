@@ -11,7 +11,7 @@ export async function POST(req) {
   if (!p || !p.nv_id || !p.club_id) return NextResponse.json({ ok: false, error: 'Phiên đã hết hạn, vui lòng quét lại' }, { status: 400 });
 
   const sb = supabaseAdmin();
-  const { data: open } = await sb.from('cham_cong').select('id').eq('nv_id', p.nv_id).is('gio_ra', null).maybeSingle();
+  const { data: open } = await sb.from('cham_cong').select('id').eq('nv_id', p.nv_id).eq('trang_thai', 'dang_lam').maybeSingle();
   if (open) return NextResponse.json({ ok: false, error: 'Bạn đang có một buổi chưa kết thúc' }, { status: 400 });
 
   const { dateStr } = vnParts();
