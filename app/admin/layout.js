@@ -1,8 +1,13 @@
+import { headers } from 'next/headers';
 import { requireAdmin } from '../../lib/guard';
 
 export const dynamic = 'force-dynamic';
 
 export default function AdminLayout({ children }) {
+  const path = headers().get('x-tng-path') || '';
+  if (path.startsWith('/admin/login')) {
+    return children;
+  }
   requireAdmin();
   return (
     <div>
