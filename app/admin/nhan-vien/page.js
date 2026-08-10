@@ -33,6 +33,7 @@ export default async function NhanVienPage({ searchParams }) {
             <select name="vai_tro"><option value="nhan_vien">Nhân viên</option><option value="quan_ly">Quản lý</option></select>
           </div>
           <div><label>PIN (tuỳ chọn)</label><input name="pin" placeholder="Để trống cho NV tự đặt" /></div>
+          <div><label>Thù lao/ca (đ)</label><input name="thu_lao" placeholder="vd: 250000" /></div>
           <button className="btn primary">Thêm</button>
         </form>
       </div>

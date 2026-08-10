@@ -5,6 +5,8 @@ import { requireAdmin } from '../../../lib/guard';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
+function num(v){const t=String(v||'').trim();if(t==='')return 0;const n=Number(t);return Number.isFinite(n)?Math.round(n):0;}
+
 export async function themNV(formData) {
   requireAdmin();
   const sb = supabaseAdmin();
@@ -16,6 +18,7 @@ export async function themNV(formData) {
     sdt: String(formData.get('sdt') || '').trim() || null,
     email: String(formData.get('email') || '').trim() || null,
     vai_tro: formData.get('vai_tro') || 'nhan_vien',
+    thu_lao: num(formData.get('thu_lao')),
   };
   if (pin) row.pin_hash = await bcrypt.hash(pin, 10);
   await sb.from('nhan_vien').insert(row);
@@ -34,6 +37,7 @@ export async function suaNV(formData) {
     email: String(formData.get('email') || '').trim() || null,
     vai_tro: formData.get('vai_tro') || 'nhan_vien',
     trang_thai: formData.get('trang_thai') || 'dang_lam',
+    thu_lao: num(formData.get('thu_lao')),
   }).eq('id', id);
   revalidatePath('/admin/nhan-vien');
   redirect('/admin/nhan-vien');

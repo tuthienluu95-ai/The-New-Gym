@@ -1,13 +1,18 @@
 import { supabaseAdmin } from '../../lib/supabase';
 import { requireAdmin } from '../../lib/guard';
 import { vnParts } from '../../lib/time';
+import { buildReport } from '../../lib/report';
+import ReportChart from './ReportChart';
 
 export const dynamic = 'force-dynamic';
+const vnd = (n) => (Number(n) || 0).toLocaleString('vi-VN') + ' đ';
 
-export default async function Dashboard() {
+export default async function Dashboard({ searchParams }) {
   requireAdmin();
   const sb = supabaseAdmin();
   const { dateStr } = vnParts();
+  const thang = searchParams?.thang || dateStr.slice(0, 7);
+
   const [clubs, nv, lich, homNay, dangDay] = await Promise.all([
     sb.from('clubs').select('id', { count: 'exact', head: true }),
     sb.from('nhan_vien').select('id', { count: 'exact', head: true }).eq('trang_thai', 'dang_lam'),
@@ -15,19 +20,94 @@ export default async function Dashboard() {
     sb.from('cham_cong').select('id', { count: 'exact', head: true }).eq('ngay', dateStr),
     sb.from('cham_cong').select('id', { count: 'exact', head: true }).eq('trang_thai', 'dang_lam').eq('ngay', dateStr),
   ]);
+
+  const report = await buildReport(sb, thang);
+  const topPay = report.list.slice(0, 10).map((r) => ({ ten: r.ho_ten, tien: r.tong_tien })).reverse();
+
   const M = [
+    { n: nv.count ?? 0, l: 'Giáo viên đang làm' },
     { n: clubs.count ?? 0, l: 'Club' },
-    { n: nv.count ?? 0, l: 'Nhân viên đang làm' },
     { n: lich.count ?? 0, l: 'Buổi lớp/tuần' },
-    { n: homNay.count ?? 0, l: 'Lượt chấm công hôm nay' },
+    { n: homNay.count ?? 0, l: 'Chấm công hôm nay' },
     { n: dangDay.count ?? 0, l: 'Đang trong ca' },
   ];
+
   return (
     <div className="stack">
       <h1>Bảng điều khiển</h1>
       <div className="grid">
         {M.map((m) => (<div className="metric" key={m.l}><div className="n">{m.n}</div><div className="l">{m.l}</div></div>))}
       </div>
+
+      <div className="card">
+        <div className="toolbar" style={{ justifyContent: 'space-between' }}>
+          <form className="form-grid">
+            <div>
+              <label>Báo cáo tháng</label>
+              <input type="month" name="thang" defaultValue={thang} />
+            </div>
+            <button className="btn">Xem</button>
+          </form>
+          <div style={{ display: 'flex', alignItems: 'end' }}>
+            <a className="btn primary" href={`/api/admin/report-export?thang=${thang}`}>Xuất Excel</a>
+          </div>
+        </div>
+        <div className="grid">
+          <div className="metric"><div className="n">{report.totals.so_gv}</div><div className="l">Giáo viên có công</div></div>
+          <div className="metric"><div className="n">{report.totals.so_ca}</div><div className="l">Tổng số ca</div></div>
+          <div className="metric"><div className="n" style={{ color: '#B7791F' }}>{report.totals.so_tre}</div><div className="l">Ca chấm công trễ</div></div>
+          <div className="metric"><div className="n">{vnd(report.totals.tong_tien)}</div><div className="l">Tổng tiền thù lao</div></div>
+        </div>
+      </div>
+
+      <ReportChart daily={report.daily} topPay={topPay} />
+
+      <div className="card">
+        <h2>Bảng công theo giáo viên · tháng {thang}</h2>
+        <table>
+          <thead><tr><th>Mã</th><th>Giáo viên</th><th>Số ca</th><th>Trễ</th><th>Thù lao/ca</th><th>Tổng tiền</th></tr></thead>
+          <tbody>
+            {report.list.length === 0 && <tr><td colSpan="6" className="muted">Chưa có dữ liệu chấm công trong tháng này.</td></tr>}
+            {report.list.map((r) => (
+              <tr key={r.ma_nv}>
+                <td><b>{r.ma_nv}</b></td>
+                <td>{r.ho_ten}</td>
+                <td>{r.so_ca}</td>
+                <td>{r.so_tre > 0 ? <span className="tag warn">{r.so_tre}</span> : <span className="muted">0</span>}</td>
+                <td className="muted">{vnd(r.thu_lao)}</td>
+                <td><b>{vnd(r.tong_tien)}</b></td>
+              </tr>
+            ))}
+            {report.list.length > 0 && (
+              <tr>
+                <td colSpan="2"><b>TỔNG</b></td>
+                <td><b>{report.totals.so_ca}</b></td>
+                <td><b>{report.totals.so_tre}</b></td>
+                <td></td>
+                <td><b>{vnd(report.totals.tong_tien)}</b></td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {report.list.some((r) => r.ngay_tre.length > 0) && (
+        <div className="card">
+          <h2>Chi tiết chấm công trễ</h2>
+          <table>
+            <thead><tr><th>Giáo viên</th><th>Số ca trễ</th><th>Các ngày trễ</th></tr></thead>
+            <tbody>
+              {report.list.filter((r) => r.ngay_tre.length > 0).map((r) => (
+                <tr key={r.ma_nv}>
+                  <td>{r.ma_nv} · {r.ho_ten}</td>
+                  <td><span className="tag warn">{r.so_tre}</span></td>
+                  <td className="muted">{r.ngay_tre.join(', ')}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

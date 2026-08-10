@@ -28,6 +28,7 @@ export default async function EditNV({ params }) {
           </div>
           <div><label>SĐT</label><input name="sdt" defaultValue={n.sdt || ''} /></div>
           <div><label>Email</label><input name="email" defaultValue={n.email || ''} /></div>
+          <div><label>Thù lao/ca (đ)</label><input name="thu_lao" defaultValue={n.thu_lao ?? 0} placeholder="vd: 250000" /></div>
           <div><label>Vai trò</label>
             <select name="vai_tro" defaultValue={n.vai_tro}><option value="nhan_vien">Nhân viên</option><option value="quan_ly">Quản lý</option></select>
           </div>
