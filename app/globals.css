@@ -68,6 +68,9 @@ tr:last-child td{border-bottom:none}
 .metric .n{font-size:26px;font-weight:700;color:var(--accent-dark)}
 .metric .l{color:var(--muted);font-size:13px}
 .row-actions{display:flex;gap:8px;justify-content:flex-end}
+.filters{display:flex;flex-wrap:wrap;gap:12px;align-items:end;width:100%;margin-bottom:16px}
+.filters>div{flex:1 1 190px;min-width:150px}
+.filters>button{flex:0 0 auto}
 .toolbar{display:flex;gap:10px;align-items:end;flex-wrap:wrap;margin-bottom:16px}
 .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;align-items:end}
 @media print{.noprint{display:none}.nav{display:none}}

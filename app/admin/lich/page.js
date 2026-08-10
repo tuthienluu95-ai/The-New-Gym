@@ -56,8 +56,7 @@ export default async function LichPage({ searchParams }) {
       </div>
 
       <div className="card">
-        <div className="toolbar">
-          <form className="form-grid">
+        <form className="filters">
             <div><label>Lọc theo club</label>
               <select name="club" defaultValue={fClub}>
                 <option value="">Tất cả club</option>
@@ -84,8 +83,7 @@ export default async function LichPage({ searchParams }) {
               </label>
             </div>
             <button className="btn primary">Lọc</button>
-          </form>
-        </div>
+        </form>
         <table>
           <thead><tr><th>Club</th><th>Thứ</th><th>Giờ</th><th>Lớp</th><th>HLV</th><th>Trạng thái</th><th></th></tr></thead>
           <tbody>

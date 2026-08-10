@@ -5,7 +5,7 @@ import { vnParts, fmtTime } from '../../../lib/time';
 export const dynamic = 'force-dynamic';
 
 function thuFromDate(s) {
-  const w = new Date(s + 'T12:00:00Z').getUTCDay(); // 0=CN..6=T7
+  const w = new Date(s + 'T12:00:00Z').getUTCDay();
   return w === 0 ? 8 : w + 1;
 }
 const THU_LABEL = { 2: 'Thứ 2', 3: 'Thứ 3', 4: 'Thứ 4', 5: 'Thứ 5', 6: 'Thứ 6', 7: 'Thứ 7', 8: 'Chủ nhật' };
@@ -22,19 +22,28 @@ export default async function LichNgayPage({ searchParams }) {
   const sb = supabaseAdmin();
   const { dateStr } = vnParts();
   const ngay = searchParams?.ngay || dateStr;
-  const club = searchParams?.club || '';
+  const fClub = searchParams?.club || '';
+  const fLop = searchParams?.lop || '';
+  const fHlv = searchParams?.hlv || '';
   const an = searchParams?.an === '1';
   const thu = thuFromDate(ngay);
 
-  const { data: clubs } = await sb.from('clubs').select('id, ten_club').order('ma_club');
+  const [{ data: clubs }, { data: nvList }, { data: allLop }] = await Promise.all([
+    sb.from('clubs').select('id, ten_club').order('ma_club'),
+    sb.from('nhan_vien').select('id, ma_nv, ho_ten').eq('trang_thai', 'dang_lam').order('ma_nv'),
+    sb.from('lich_lop').select('ten_lop'),
+  ]);
+  const lopList = Array.from(new Set((allLop || []).map((x) => x.ten_lop).filter(Boolean))).sort();
+
   let q = sb.from('lich_lop')
     .select('id, gio_bat_dau, gio_ket_thuc, ten_lop, clubs!club_id ( ten_club ), nhan_vien!nv_id ( ma_nv, ho_ten )')
     .eq('thu', thu).eq('dang_ap_dung', true).order('gio_bat_dau');
-  if (club) q = q.eq('club_id', club);
+  if (fClub) q = q.eq('club_id', fClub);
+  if (fLop) q = q.eq('ten_lop', fLop);
+  if (fHlv) q = q.eq('nv_id', fHlv);
   const { data: lich } = await q;
 
-  const { data: cc } = await sb.from('cham_cong')
-    .select('lich_lop_id, trang_thai, gio_vao, gio_ra').eq('ngay', ngay);
+  const { data: cc } = await sb.from('cham_cong').select('lich_lop_id, trang_thai, gio_vao, gio_ra').eq('ngay', ngay);
   const map = new Map();
   for (const r of (cc || [])) if (r.lich_lop_id) map.set(r.lich_lop_id, r);
 
@@ -42,33 +51,43 @@ export default async function LichNgayPage({ searchParams }) {
     const a = map.get(l.id);
     return { ...l, tt: a ? a.trang_thai : 'chua', gio_vao: a?.gio_vao, gio_ra: a?.gio_ra };
   });
+  const done = rows.filter((r) => r.tt === 'hoan_thanh').length;
   if (an) rows = rows.filter((r) => r.tt !== 'hoan_thanh');
-
-  const done = (lich || []).filter((l) => map.get(l.id)?.trang_thai === 'hoan_thanh').length;
 
   return (
     <div className="stack">
       <h1>Lịch theo ngày</h1>
       <div className="card">
-        <div className="toolbar">
-          <form className="form-grid">
-            <div><label>Ngày</label><input type="date" name="ngay" defaultValue={ngay} /></div>
-            <div><label>Club</label>
-              <select name="club" defaultValue={club}>
-                <option value="">Tất cả club</option>
-                {(clubs || []).map((c) => <option key={c.id} value={c.id}>{c.ten_club}</option>)}
-              </select>
-            </div>
-            <div>
-              <label>Hiển thị</label>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 8, height: 42, color: 'var(--ink)' }}>
-                <input type="checkbox" name="an" value="1" defaultChecked={an} style={{ width: 18, height: 18 }} />
-                Ẩn lớp đã hoàn thành
-              </label>
-            </div>
-            <button className="btn primary">Xem</button>
-          </form>
-        </div>
+        <form className="filters">
+          <div><label>Ngày</label><input type="date" name="ngay" defaultValue={ngay} /></div>
+          <div><label>Club</label>
+            <select name="club" defaultValue={fClub}>
+              <option value="">Tất cả club</option>
+              {(clubs || []).map((c) => <option key={c.id} value={c.id}>{c.ten_club}</option>)}
+            </select>
+          </div>
+          <div><label>Lớp</label>
+            <select name="lop" defaultValue={fLop}>
+              <option value="">Tất cả lớp</option>
+              {lopList.map((l) => <option key={l} value={l}>{l}</option>)}
+            </select>
+          </div>
+          <div><label>Giáo viên</label>
+            <select name="hlv" defaultValue={fHlv}>
+              <option value="">Tất cả giáo viên</option>
+              {(nvList || []).map((n) => <option key={n.id} value={n.id}>{n.ma_nv} · {n.ho_ten}</option>)}
+            </select>
+          </div>
+          <div>
+            <label>Hiển thị</label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8, height: 42 }}>
+              <input type="checkbox" name="an" value="1" defaultChecked={an} style={{ width: 18, height: 18 }} />
+              Ẩn lớp đã hoàn thành
+            </label>
+          </div>
+          <button className="btn primary">Xem</button>
+        </form>
+
         <p className="muted">{THU_LABEL[thu]} · {ngay} · {rows.length} lớp hiển thị{done ? ` · ${done} lớp đã hoàn thành` : ''}</p>
         <table>
           <thead><tr><th>Club</th><th>Giờ</th><th>Lớp</th><th>HLV</th><th>Vào</th><th>Ra</th><th>Trạng thái</th></tr></thead>
