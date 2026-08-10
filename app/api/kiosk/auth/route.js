@@ -1,18 +1,42 @@
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { supabaseAdmin } from '../../../../lib/supabase';
-import { signToken } from '../../../../lib/auth';
+import { signToken, verifyToken } from '../../../../lib/auth';
 import { vnParts } from '../../../../lib/time';
+import { haversineMeters } from '../../../../lib/geo';
 
 export const dynamic = 'force-dynamic';
 
+async function resolveClub(sb, c) {
+  const p = verifyToken(c);
+  if (p && p.kind === 'qr' && p.club_id) {
+    const { data } = await sb.from('clubs').select('id, lat, lng, ban_kinh_m').eq('id', p.club_id).maybeSingle();
+    return data;
+  }
+  if (c && c.includes('.')) return null; // token động đã hết hạn
+  const { data } = await sb.from('clubs').select('id, lat, lng, ban_kinh_m').eq('qr_token', c).maybeSingle();
+  return data;
+}
+
 export async function POST(req) {
-  const { token, ma_nv, pin } = await req.json();
+  const { token, ma_nv, pin, lat, lng } = await req.json();
   if (!token || !ma_nv || !pin) return NextResponse.json({ ok: false, error: 'Vui lòng nhập đủ mã và PIN' }, { status: 400 });
 
   const sb = supabaseAdmin();
-  const { data: club } = await sb.from('clubs').select('id').eq('qr_token', token).maybeSingle();
-  if (!club) return NextResponse.json({ ok: false, error: 'Mã QR không hợp lệ' }, { status: 400 });
+  const club = await resolveClub(sb, token);
+  if (!club) return NextResponse.json({ ok: false, error: 'Mã QR không hợp lệ hoặc đã hết hạn, vui lòng quét lại' }, { status: 400 });
+
+  // Kiểm tra GPS nếu club đã đặt toạ độ
+  if (club.lat != null && club.lng != null) {
+    if (lat == null || lng == null) {
+      return NextResponse.json({ ok: false, error: 'Vui lòng bật định vị (GPS) và cho phép truy cập vị trí để chấm công' }, { status: 400 });
+    }
+    const d = haversineMeters(Number(lat), Number(lng), Number(club.lat), Number(club.lng));
+    const radius = club.ban_kinh_m || 200;
+    if (d > radius) {
+      return NextResponse.json({ ok: false, error: `Bạn đang cách club khoảng ${Math.round(d)}m (ngoài phạm vi ${radius}m). Vui lòng chấm công tại club.` }, { status: 400 });
+    }
+  }
 
   const { data: nv } = await sb.from('nhan_vien')
     .select('id, ho_ten, pin_hash, trang_thai').eq('ma_nv', String(ma_nv).trim()).maybeSingle();

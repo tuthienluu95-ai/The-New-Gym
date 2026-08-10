@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 export default async function ClubsPage() {
   requireAdmin();
   const sb = supabaseAdmin();
-  const { data: clubs } = await sb.from('clubs').select('id, ma_club, ten_club, dia_chi').order('ma_club');
+  const { data: clubs } = await sb.from('clubs').select('id, ma_club, ten_club, dia_chi, lat, lng, qr_token').order('ma_club');
   return (
     <div className="stack">
       <h1>Club ({clubs?.length || 0})</h1>
@@ -24,16 +24,16 @@ export default async function ClubsPage() {
 
       <div className="card">
         <table>
-          <thead><tr><th>Mã</th><th>Tên club</th><th>Địa chỉ</th><th></th></tr></thead>
+          <thead><tr><th>Mã</th><th>Tên club</th><th>GPS</th><th></th></tr></thead>
           <tbody>
             {(clubs || []).map((c) => (
               <tr key={c.id}>
                 <td><b>{c.ma_club}</b></td>
                 <td>{c.ten_club}</td>
-                <td className="muted">{c.dia_chi || '—'}</td>
+                <td>{c.lat != null && c.lng != null ? <span className="tag green">Đã đặt</span> : <span className="tag warn">Chưa đặt</span>}</td>
                 <td>
                   <div className="row-actions">
-                    <a className="btn" href={`/admin/clubs/${c.id}/qr`}>Mã QR</a>
+                    <a className="btn" href={`/bang-hien-thi/${c.qr_token}`} target="_blank">Màn hình</a>
                     <a className="btn" href={`/admin/clubs/${c.id}`}>Sửa</a>
                     <form action={xoaClub}><input type="hidden" name="id" value={c.id} /><button className="btn danger">Xoá</button></form>
                   </div>

@@ -13,13 +13,25 @@ export default function KioskClient({ club, token }) {
   const [openSession, setOpenSession] = useState(null);
   const [result, setResult] = useState(null); // {kind:'in'|'out', ten_lop, gio}
 
+  function getPos() {
+    return new Promise((resolve) => {
+      if (!navigator.geolocation) return resolve(null);
+      navigator.geolocation.getCurrentPosition(
+        (p) => resolve({ lat: p.coords.latitude, lng: p.coords.longitude }),
+        () => resolve(null),
+        { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
+      );
+    });
+  }
+
   async function submitAuth(e) {
     e.preventDefault();
     setError(''); setLoading(true);
     try {
+      const pos = await getPos();
       const r = await fetch('/api/kiosk/auth', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, ma_nv: maNv, pin }),
+        body: JSON.stringify({ token, ma_nv: maNv, pin, lat: pos?.lat ?? null, lng: pos?.lng ?? null }),
       });
       const d = await r.json();
       if (!d.ok) { setError(d.error || 'Có lỗi xảy ra'); setLoading(false); return; }
@@ -87,7 +99,7 @@ export default function KioskClient({ club, token }) {
           <button className="btn primary big" disabled={loading}>
             {loading ? 'Đang xử lý…' : 'Tiếp tục'}
           </button>
-          <p className="muted center">Lần đầu đăng nhập, mã PIN bạn nhập sẽ được đặt làm PIN của bạn.</p>
+          <p className="muted center">Lần đầu đăng nhập, mã PIN bạn nhập sẽ được đặt làm PIN của bạn. Hãy cho phép truy cập vị trí khi được hỏi.</p>
         </form>
       )}
 
