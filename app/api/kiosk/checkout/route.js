@@ -17,7 +17,7 @@ export async function POST(req) {
 
   const { data, error } = await sb.from('cham_cong')
     .update({ gio_ra: new Date().toISOString(), trang_thai: 'hoan_thanh' })
-    .eq('id', open.id).select('gio_ra, lich_lop ( ten_lop )').single();
+    .eq('id', open.id).select('gio_ra, lich_lop!lich_lop_id ( ten_lop )').single();
   if (error) return NextResponse.json({ ok: false, error: 'Không lưu được, thử lại' }, { status: 500 });
 
   return NextResponse.json({ ok: true, gio_ra: data.gio_ra, ten_lop: data.lich_lop?.ten_lop || null });

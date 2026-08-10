@@ -32,7 +32,7 @@ export async function POST(req) {
   const sessionToken = signToken({ nv_id: nv.id, club_id: club.id }, 300);
 
   const { data: open } = await sb.from('cham_cong')
-    .select('id, gio_vao, lich_lop ( ten_lop )')
+    .select('id, gio_vao, lich_lop!lich_lop_id ( ten_lop )')
     .eq('nv_id', nv.id).is('gio_ra', null)
     .order('gio_vao', { ascending: false }).limit(1).maybeSingle();
 

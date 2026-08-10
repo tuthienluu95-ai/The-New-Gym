@@ -15,7 +15,7 @@ export default async function LichPage({ searchParams }) {
     sb.from('nhan_vien').select('id, ma_nv, ho_ten').eq('trang_thai', 'dang_lam').order('ma_nv'),
   ]);
   let q = sb.from('lich_lop')
-    .select('id, thu, gio_bat_dau, gio_ket_thuc, ten_lop, clubs:club_id ( ten_club ), nhan_vien:nv_id ( ho_ten, ma_nv )')
+    .select('id, thu, gio_bat_dau, gio_ket_thuc, ten_lop, clubs!club_id ( ten_club ), nhan_vien!nv_id ( ho_ten, ma_nv )')
     .order('thu').order('gio_bat_dau');
   if (filterClub) q = q.eq('club_id', filterClub);
   const { data: lich } = await q;

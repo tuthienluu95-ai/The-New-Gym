@@ -9,7 +9,7 @@ export default async function NhanVienPage({ searchParams }) {
   const sb = supabaseAdmin();
   const filterClub = searchParams?.club || '';
   const { data: clubs } = await sb.from('clubs').select('id, ma_club, ten_club').order('ma_club');
-  let q = sb.from('nhan_vien').select('id, ma_nv, ho_ten, sdt, pin_hash, vai_tro, trang_thai, club_chinh_id, clubs:club_chinh_id ( ten_club )').order('ma_nv');
+  let q = sb.from('nhan_vien').select('id, ma_nv, ho_ten, sdt, pin_hash, vai_tro, trang_thai, club_chinh_id, clubs!club_chinh_id ( ten_club )').order('ma_nv');
   if (filterClub) q = q.eq('club_chinh_id', filterClub);
   const { data: nv } = await q;
 

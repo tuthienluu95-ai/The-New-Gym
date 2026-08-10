@@ -11,7 +11,7 @@ export default async function ChamCongPage({ searchParams }) {
   const ngay = searchParams?.ngay || dateStr;
 
   const { data: rows } = await sb.from('cham_cong')
-    .select('id, ngay, gio_vao, gio_ra, trang_thai, nhan_vien:nv_id ( ma_nv, ho_ten ), clubs:club_id ( ten_club ), lich_lop:lich_lop_id ( ten_lop )')
+    .select('id, ngay, gio_vao, gio_ra, trang_thai, nhan_vien!nv_id ( ma_nv, ho_ten ), clubs!club_id ( ten_club ), lich_lop!lich_lop_id ( ten_lop )')
     .eq('ngay', ngay)
     .order('gio_vao', { ascending: true });
 

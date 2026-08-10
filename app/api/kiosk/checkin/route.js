@@ -17,7 +17,7 @@ export async function POST(req) {
   const { dateStr } = vnParts();
   const { data, error } = await sb.from('cham_cong')
     .insert({ nv_id: p.nv_id, club_id: p.club_id, lich_lop_id: lich_lop_id || null, ngay: dateStr, trang_thai: 'dang_lam' })
-    .select('gio_vao, lich_lop ( ten_lop )').single();
+    .select('gio_vao, lich_lop!lich_lop_id ( ten_lop )').single();
   if (error) return NextResponse.json({ ok: false, error: 'Không lưu được, thử lại' }, { status: 500 });
 
   return NextResponse.json({ ok: true, gio_vao: data.gio_vao, ten_lop: data.lich_lop?.ten_lop || null });
