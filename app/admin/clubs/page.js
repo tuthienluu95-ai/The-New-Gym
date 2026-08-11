@@ -33,7 +33,7 @@ export default async function ClubsPage() {
                 <td>{c.lat != null && c.lng != null ? <span className="tag green">Đã đặt</span> : <span className="tag warn">Chưa đặt</span>}</td>
                 <td>
                   <div className="row-actions">
-                    <a className="btn" href={`/bang-hien-thi/${c.qr_token}`} target="_blank">Màn hình</a>
+                    <a className="btn" href={`/admin/clubs/${c.id}/qr`}>Mã QR</a>
                     <a className="btn" href={`/admin/clubs/${c.id}`}>Sửa</a>
                     <form action={xoaClub}><input type="hidden" name="id" value={c.id} /><button className="btn danger">Xoá</button></form>
                   </div>

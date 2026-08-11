@@ -26,7 +26,7 @@ export default async function ClubQR({ params }) {
         <p className="muted" style={{ wordBreak: 'break-all' }}>{url}</p>
         <div className="noprint"><PrintButton /></div>
       </div>
-      <p className="muted center noprint">In mã này và dán tại quầy lễ tân của club. Nhân viên dùng camera điện thoại quét là vào thẳng màn hình chấm công.</p>
+      <p className="muted center noprint">In mã này và dán tại quầy club. Nhân viên quét bằng camera điện thoại để chấm công. Bắt buộc phải đứng trong bán kính club (theo toạ độ đã đặt) mới chấm công được.</p>
     </div>
   );
 }
