@@ -8,10 +8,7 @@ export default function AdminLogin({ searchParams }) {
     <>
       <IntroTeaser />
       <main className="authscreen">
-        <div className="brand">
-          <div className="name">THE NEW GYM</div>
-          <div className="club">Trang quản trị</div>
-        </div>
+        <div className="logo-plate"><img src="/logo.png" alt="THE NEW GYM" /></div>
         <form className="card stack" method="post" action="/api/admin/login" style={{ width: '100%', maxWidth: 420 }}>
           <h2>Đăng nhập admin</h2>
           {error && <div className="err">Sai mật khẩu, vui lòng thử lại.</div>}

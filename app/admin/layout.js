@@ -13,7 +13,7 @@ export default function AdminLayout({ children }) {
     <div>
       <nav className="nav">
         <div className="inner">
-          <span className="logo">THE NEW GYM</span>
+          <img className="brand-logo" src="/logo.png" alt="THE NEW GYM" />
           <a href="/admin">Bảng điều khiển</a>
           <a href="/admin/clubs">Club</a>
           <a href="/admin/nhan-vien">Nhân viên</a>
