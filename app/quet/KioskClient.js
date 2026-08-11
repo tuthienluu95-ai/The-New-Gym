@@ -83,7 +83,7 @@ export default function KioskClient({ club, token }) {
   return (
     <main className="kiosk">
       <div className="brand">
-        <div className="name">THE NEW GYM<span className="dot">.</span></div>
+        <div className="name">THE NEW GYM</div>
         <div className="club">{club.ten_club}</div>
       </div>
 

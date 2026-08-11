@@ -5,7 +5,7 @@
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
-body{background:var(--bg);color:var(--ink);
+body{background-color:var(--bg);background-image:radial-gradient(rgba(21,145,214,.06) 1px, transparent 1px);background-size:22px 22px;color:var(--ink);
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
   line-height:1.5;-webkit-font-smoothing:antialiased}
 a{color:var(--accent);text-decoration:none}
@@ -81,3 +81,32 @@ tr:last-child td{border-bottom:none}
 .class-btn.locked{opacity:.6;cursor:not-allowed;background:#F3F5F7}
 .class-btn.locked:hover{border-color:var(--border);background:#F3F5F7}
 .warn-text{color:var(--warn);font-weight:600}
+
+/* Trang đăng nhập full màn hình, nền thương hiệu */
+.authscreen{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;
+  background-color:var(--accent);
+  background-image:radial-gradient(circle at 18% 20%, rgba(255,255,255,.12), transparent 42%),
+                   radial-gradient(circle at 85% 85%, rgba(0,0,0,.14), transparent 46%),
+                   repeating-linear-gradient(135deg, rgba(255,255,255,.05) 0 2px, transparent 2px 22px);}
+.authscreen .brand{text-align:center;margin-bottom:20px}
+.authscreen .brand .name{color:#fff;font-weight:800;font-size:28px;letter-spacing:1.5px}
+.authscreen .brand .club{color:rgba(255,255,255,.9);font-size:14px;margin-top:4px}
+
+/* Teaser mở màn (CGV-style) */
+.teaser{position:fixed;inset:0;z-index:9999;background:var(--accent-dark);display:flex;align-items:center;justify-content:center;overflow:hidden;transition:opacity .45s ease;cursor:pointer}
+.teaser.fade{opacity:0}
+.teaser::before{content:"";position:absolute;inset:0;background:
+  radial-gradient(circle at 50% 40%, rgba(255,255,255,.14), transparent 55%),
+  repeating-linear-gradient(135deg, rgba(255,255,255,.05) 0 2px, transparent 2px 24px)}
+.teaser-inner{position:relative;text-align:center;color:#fff;padding:24px}
+.teaser-logo{font-weight:800;font-size:clamp(30px,8vw,72px);letter-spacing:3px;opacity:0;transform:scale(.88);
+  animation:tzIn 1s cubic-bezier(.2,.7,.2,1) .2s forwards}
+.teaser-tag{margin-top:12px;font-size:clamp(12px,2.6vw,18px);letter-spacing:8px;color:rgba(255,255,255,.85);
+  opacity:0;animation:tzUp .8s ease 1.1s forwards}
+.teaser-bar{position:relative;margin:30px auto 0;width:min(300px,72vw);height:4px;border-radius:999px;background:rgba(255,255,255,.22);overflow:hidden}
+.teaser-bar>span{display:block;height:100%;width:0;background:var(--orange);border-radius:999px;animation:tzBar 5s linear .4s forwards}
+.teaser-skip{position:absolute;top:18px;right:18px;background:rgba(255,255,255,.16);color:#fff;border:none;height:36px;padding:0 16px;border-radius:999px;font-size:14px;cursor:pointer;z-index:1}
+.teaser-skip:hover{background:rgba(255,255,255,.28)}
+@keyframes tzIn{to{opacity:1;transform:scale(1)}}
+@keyframes tzUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes tzBar{to{width:100%}}
