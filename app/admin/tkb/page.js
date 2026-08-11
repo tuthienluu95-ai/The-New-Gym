@@ -4,7 +4,7 @@ import { vnParts, fmtTime } from '../../../lib/time';
 
 export const dynamic = 'force-dynamic';
 
-const DAYS = [2, 3, 4, 5, 6, 7, 8];
+const DAYS = [2, 3, 4, 5, 6, 7];
 const DLABEL = { 2: 'Thứ 2', 3: 'Thứ 3', 4: 'Thứ 4', 5: 'Thứ 5', 6: 'Thứ 6', 7: 'Thứ 7', 8: 'Chủ nhật' };
 const hhmm = (t) => (t || '').slice(0, 5);
 
