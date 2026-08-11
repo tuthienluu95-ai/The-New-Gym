@@ -116,3 +116,16 @@ tr:last-child td{border-bottom:none}
 @keyframes tzUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 @keyframes tzBar{to{width:100%}}
 @keyframes tzLetter{to{opacity:1;transform:translateY(0) scale(1)}}
+
+/* Thời khoá biểu dạng lưới */
+.tkb-club{margin-bottom:18px}
+.tkb-grid{display:grid;grid-template-columns:repeat(7,minmax(130px,1fr));gap:8px;overflow-x:auto}
+.tkb-col{display:flex;flex-direction:column;gap:8px;min-width:0}
+.tkb-day-head{font-weight:600;text-align:center;background:var(--accent-dark);color:#fff;padding:8px;border-radius:8px;font-size:14px}
+.tkb-cell{background:#fff;border:1px solid var(--border);border-left:4px solid var(--accent);border-radius:8px;padding:8px 10px}
+.tkb-cell .lop{font-weight:700;font-size:14px;line-height:1.25}
+.tkb-cell .gio{color:var(--muted);font-size:12px;margin-top:2px}
+.tkb-cell .hlv{font-size:12px;margin-top:4px;color:var(--ink)}
+.tkb-cell.warn{border-left-color:var(--warn);background:var(--warn-weak)}
+.tkb-cell.warn .hlv{color:var(--warn);font-weight:600}
+.tkb-empty{color:var(--muted);font-size:12px;text-align:center;padding:6px 0}
