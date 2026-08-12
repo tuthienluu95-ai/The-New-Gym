@@ -18,7 +18,7 @@ export default async function ChamCongPage({ searchParams }) {
   const today = dateStr;
   return (
     <div className="stack">
-      <h1>Chấm công</h1>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}><h1>Chấm công</h1><a className="btn" href={`/api/admin/export?type=cham-cong&ngay=${ngay}`}>Xuất Excel</a></div>
       <div className="card">
         <div className="toolbar">
           <form className="form-grid">

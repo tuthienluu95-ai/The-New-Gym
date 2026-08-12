@@ -15,18 +15,20 @@ export default async function ClubQR({ params }) {
   const proto = h.get('x-forwarded-proto') || 'https';
   const host = h.get('host');
   const url = `${proto}://${host}/quet?c=${c.qr_token}`;
-  const svg = await QRCode.toString(url, { type: 'svg', margin: 1, width: 260 });
+  const dataUrl = await QRCode.toDataURL(url, { width: 600, margin: 1 });
   return (
     <div className="stack">
       <div className="noprint"><a href="/admin/clubs">← Về danh sách club</a></div>
       <div className="card center stack" style={{ maxWidth: 360, margin: '0 auto' }}>
         <div style={{ fontWeight: 700 }}>THE NEW GYM</div>
         <div>{c.ten_club}</div>
-        <div dangerouslySetInnerHTML={{ __html: svg }} />
-        <p className="muted" style={{ wordBreak: 'break-all' }}>{url}</p>
-        <div className="noprint"><PrintButton /></div>
+        <img src={dataUrl} alt="Mã QR" style={{ width: 260, height: 260 }} />
+        <div className="noprint" style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
+          <a className="btn primary" href={dataUrl} download={`QR-${c.ma_club}.png`}>Tải mã QR</a>
+          <PrintButton />
+        </div>
       </div>
-      <p className="muted center noprint">In mã này và dán tại quầy club. Nhân viên quét bằng camera điện thoại để chấm công. Bắt buộc phải đứng trong bán kính club (theo toạ độ đã đặt) mới chấm công được.</p>
+      <p className="muted center noprint">Tải hoặc in mã này gửi cho club để dán tại quầy. Nhân viên quét bằng camera điện thoại; phải ở trong bán kính club mới chấm công được.</p>
     </div>
   );
 }

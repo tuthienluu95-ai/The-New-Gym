@@ -84,6 +84,7 @@ export default async function TkbPage({ searchParams }) {
         </div>
       )}
       <button className="btn primary">Xem</button>
+      <a className="btn" href={`/api/admin/export?type=tkb&che_do=${che_do}&ngay=${ngay}&tu=${tu}&den=${den}&club=${fClub}&lop=${encodeURIComponent(fLop)}&hlv=${fHlv}&an=${an ? "1" : ""}`}>Xuất Excel</a>
     </form>
   );
 

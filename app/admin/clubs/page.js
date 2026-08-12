@@ -10,7 +10,7 @@ export default async function ClubsPage() {
   const { data: clubs } = await sb.from('clubs').select('id, ma_club, ten_club, dia_chi, lat, lng, qr_token').order('ma_club');
   return (
     <div className="stack">
-      <h1>Club ({clubs?.length || 0})</h1>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}><h1>Club ({clubs?.length || 0})</h1><a className="btn" href="/api/admin/export?type=clubs">Xuất Excel</a></div>
 
       <div className="card">
         <h2>Thêm club</h2>

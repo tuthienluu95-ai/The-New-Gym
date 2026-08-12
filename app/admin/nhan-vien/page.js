@@ -15,7 +15,7 @@ export default async function NhanVienPage({ searchParams }) {
 
   return (
     <div className="stack">
-      <h1>Nhân viên ({nv?.length || 0})</h1>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}><h1>Nhân viên ({nv?.length || 0})</h1><a className="btn" href={`/api/admin/export?type=nhan-vien&club=${filterClub}`}>Xuất Excel</a></div>
 
       <div className="card">
         <h2>Thêm nhân viên</h2>

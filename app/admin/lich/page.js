@@ -32,7 +32,7 @@ export default async function LichPage({ searchParams }) {
 
   return (
     <div className="stack">
-      <h1>Lịch lớp ({lich?.length || 0})</h1>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}><h1>Lịch lớp ({lich?.length || 0})</h1><a className="btn" href={`/api/admin/export?type=lich&club=${fClub}&lop=${encodeURIComponent(fLop)}&hlv=${fHlv}&an=${anKhoa ? "1" : ""}`}>Xuất Excel</a></div>
 
       <div className="card">
         <h2>Thêm buổi lớp</h2>
