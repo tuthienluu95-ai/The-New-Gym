@@ -121,6 +121,9 @@ export default async function TkbPage({ searchParams }) {
                   {(g.days[d] || []).length === 0 && <div className="tkb-empty">—</div>}
                   {(g.days[d] || []).map((c) => (
                     <div className={'tkb-cell' + (c.nhan_vien ? '' : ' warn')} key={c.id} style={{ borderLeftColor: lopColor(c.ten_lop) }}>
+                      <a className="tkb-edit" href={`/admin/lich/${c.id}`} title="Sửa lớp / đổi HLV" aria-label="Sửa">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg>
+                      </a>
                       <div className="lop" style={{ color: lopColor(c.ten_lop) }}>{c.ten_lop}</div>
                       <div className="gio">{hhmm(c.gio_bat_dau)} – {hhmm(c.gio_ket_thuc)}</div>
                       <div className="hlv">{c.nhan_vien ? `${c.nhan_vien.ho_ten}${c.nhan_vien.sdt ? ' · ' + c.nhan_vien.sdt : ''}` : '⚠ Chưa xếp HLV'}</div>
