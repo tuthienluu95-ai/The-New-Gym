@@ -1,16 +1,19 @@
+import { matchQ } from '../../../lib/search';
 import { supabaseAdmin } from '../../../lib/supabase';
 import { requireAdmin } from '../../../lib/guard';
 import { themClub, xoaClub } from './actions';
 
 export const dynamic = 'force-dynamic';
 
-export default async function ClubsPage() {
+export default async function ClubsPage({ searchParams }) {
   requireAdmin();
   const sb = supabaseAdmin();
   const { data: clubs } = await sb.from('clubs').select('id, ma_club, ten_club, dia_chi, lat, lng, qr_token').order('ma_club');
+  const timkiem = searchParams?.q || '';
+  const clubsF = (clubs || []).filter((c) => matchQ(`${c.ma_club} ${c.ten_club} ${c.dia_chi || ''}`, timkiem));
   return (
     <div className="stack">
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}><h1>Club ({clubs?.length || 0})</h1><a className="btn" href="/api/admin/export?type=clubs">Xuất Excel</a></div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}><h1>Club ({clubsF.length})</h1><a className="btn" href={`/api/admin/export?type=clubs&q=${encodeURIComponent(timkiem)}`}>Xuất Excel</a></div>
 
       <div className="card">
         <h2>Thêm club</h2>
@@ -23,10 +26,14 @@ export default async function ClubsPage() {
       </div>
 
       <div className="card">
+        <form className="filters">
+          <div><label>Tìm kiếm</label><input name="q" defaultValue={timkiem} placeholder="Mã, tên club, địa chỉ..." /></div>
+          <button className="btn">Tìm</button>
+        </form>
         <table>
           <thead><tr><th>Mã</th><th>Tên club</th><th>GPS</th><th></th></tr></thead>
           <tbody>
-            {(clubs || []).map((c) => (
+            {clubsF.map((c) => (
               <tr key={c.id}>
                 <td><b>{c.ma_club}</b></td>
                 <td>{c.ten_club}</td>

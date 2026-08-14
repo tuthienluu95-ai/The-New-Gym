@@ -20,6 +20,7 @@ export default function AdminLayout({ children }) {
           <a href="/admin/lich">Lịch lớp</a>
           <a href="/admin/tkb">Thời khoá biểu</a>
           <a href="/admin/cham-cong">Chấm công</a>
+          <a href="/api/admin/backup">Sao lưu</a>
           <form method="post" action="/api/admin/logout" className="spacer" style={{ margin: 0, marginLeft: 'auto' }}>
             <button className="btn" style={{ height: 34 }}>Đăng xuất</button>
           </form>

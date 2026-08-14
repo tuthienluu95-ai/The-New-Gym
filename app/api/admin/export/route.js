@@ -3,6 +3,7 @@ import * as XLSX from 'xlsx';
 import { isAdminToken, ADMIN_COOKIE } from '../../../../lib/auth';
 import { supabaseAdmin } from '../../../../lib/supabase';
 import { vnParts, fmtTime, thuLabel } from '../../../../lib/time';
+import { matchQ } from '../../../../lib/search';
 
 export const dynamic = 'force-dynamic';
 const hhmm = (t) => (t || '').slice(0, 5);
@@ -21,10 +22,12 @@ export async function GET(req) {
   if (!isAdminToken(c)) return new Response('Unauthorized', { status: 401 });
   const sp = new URL(req.url).searchParams;
   const type = sp.get('type');
+  const tk = sp.get('q') || '';
   const sb = supabaseAdmin();
 
   if (type === 'clubs') {
-    const { data } = await sb.from('clubs').select('ma_club,ten_club,dia_chi,lat,lng,ban_kinh_m').order('ma_club');
+    let { data } = await sb.from('clubs').select('ma_club,ten_club,dia_chi,lat,lng,ban_kinh_m').order('ma_club');
+    data = (data||[]).filter(r=>matchQ(`${r.ma_club} ${r.ten_club} ${r.dia_chi||''}`, tk));
     const aoa = [['Mã club', 'Tên club', 'Địa chỉ', 'Vĩ độ', 'Kinh độ', 'Bán kính (m)', 'GPS']];
     for (const r of data || []) aoa.push([r.ma_club, r.ten_club, r.dia_chi || '', r.lat ?? '', r.lng ?? '', r.ban_kinh_m ?? '', (r.lat != null && r.lng != null) ? 'Đã đặt' : 'Chưa đặt']);
     return xlsx(aoa, 'Club', 'club.xlsx');
@@ -33,7 +36,8 @@ export async function GET(req) {
   if (type === 'nhan-vien') {
     let q = sb.from('nhan_vien').select('ma_nv,ho_ten,sdt,email,vai_tro,trang_thai,thu_lao,pin_hash,clubs!club_chinh_id(ten_club)').order('ma_nv');
     if (sp.get('club')) q = q.eq('club_chinh_id', sp.get('club'));
-    const { data } = await q;
+    let { data } = await q;
+    data = (data||[]).filter(r=>matchQ(`${r.ma_nv} ${r.ho_ten} ${r.sdt||''} ${r.email||''} ${r.clubs?.ten_club||''}`, tk));
     const aoa = [['Mã NV', 'Họ tên', 'Club', 'SĐT', 'Email', 'Vai trò', 'Trạng thái', 'Thù lao/ca', 'PIN']];
     for (const r of data || []) aoa.push([r.ma_nv, r.ho_ten, r.clubs?.ten_club || '', r.sdt || '', r.email || '', r.vai_tro, r.trang_thai === 'dang_lam' ? 'Đang làm' : 'Đã nghỉ', r.thu_lao || 0, r.pin_hash ? 'Đã đặt' : 'Chưa đặt']);
     return xlsx(aoa, 'Nhan vien', 'nhan-vien.xlsx');
@@ -45,7 +49,8 @@ export async function GET(req) {
     if (sp.get('lop')) q = q.eq('ten_lop', sp.get('lop'));
     if (sp.get('hlv')) q = q.eq('nv_id', sp.get('hlv'));
     if (sp.get('an') === '1') q = q.eq('dang_ap_dung', true);
-    const { data } = await q;
+    let { data } = await q;
+    data = (data||[]).filter(r=>matchQ(`${r.clubs?.ten_club||''} ${thuLabel(r.thu)} ${r.ten_lop} ${r.nhan_vien?(r.nhan_vien.ma_nv+' '+r.nhan_vien.ho_ten):''}`, tk));
     const aoa = [['Club', 'Thứ', 'Bắt đầu', 'Kết thúc', 'Lớp', 'HLV', 'Trạng thái']];
     for (const r of data || []) aoa.push([r.clubs?.ten_club || '', thuLabel(r.thu), hhmm(r.gio_bat_dau), hhmm(r.gio_ket_thuc), r.ten_lop, r.nhan_vien ? `${r.nhan_vien.ma_nv} · ${r.nhan_vien.ho_ten}` : 'Chưa xếp HLV', r.dang_ap_dung ? 'Đang áp dụng' : 'Đã khoá']);
     return xlsx(aoa, 'Lich lop', 'lich-lop.xlsx');
@@ -54,7 +59,8 @@ export async function GET(req) {
   if (type === 'cham-cong') {
     const ngay = sp.get('ngay') || vnParts().dateStr;
     const today = vnParts().dateStr;
-    const { data } = await sb.from('cham_cong').select('ngay,gio_vao,gio_ra,trang_thai,ghi_chu,nhan_vien!nv_id(ma_nv,ho_ten),clubs!club_id(ten_club),lich_lop!lich_lop_id(ten_lop)').eq('ngay', ngay).order('gio_vao');
+    let { data } = await sb.from('cham_cong').select('ngay,gio_vao,gio_ra,trang_thai,ghi_chu,nhan_vien!nv_id(ma_nv,ho_ten),clubs!club_id(ten_club),lich_lop!lich_lop_id(ten_lop)').eq('ngay', ngay).order('gio_vao');
+    data = (data||[]).filter(r=>matchQ(`${r.nhan_vien?.ma_nv||''} ${r.nhan_vien?.ho_ten||''} ${r.clubs?.ten_club||''} ${r.lich_lop?.ten_lop||''} ${r.ghi_chu||''}`, tk));
     const aoa = [[`Chấm công ngày ${ngay}`], [], ['Mã NV', 'Họ tên', 'Club', 'Lớp', 'Ghi chú', 'Vào', 'Ra', 'Trạng thái']];
     for (const r of data || []) { const quen = r.trang_thai === 'quen_ra' || (!r.gio_ra && r.ngay < today); aoa.push([r.nhan_vien?.ma_nv || '', r.nhan_vien?.ho_ten || '', r.clubs?.ten_club || '', r.lich_lop?.ten_lop || 'Lớp khác', r.ghi_chu || '', fmtTime(r.gio_vao), r.gio_ra ? fmtTime(r.gio_ra) : '', quen ? 'Quên chấm ra' : (r.trang_thai === 'hoan_thanh' ? 'Hoàn thành' : 'Đang trong ca')]); }
     return xlsx(aoa, 'Cham cong', `cham-cong-${ngay}.xlsx`);
@@ -66,7 +72,8 @@ export async function GET(req) {
     if (che_do === 'tuan') {
       let q = sb.from('lich_lop').select('thu,gio_bat_dau,gio_ket_thuc,ten_lop,clubs!club_id(ten_club),nhan_vien!nv_id(ma_nv,ho_ten)').eq('dang_ap_dung', true).order('thu').order('gio_bat_dau');
       if (club) q = q.eq('club_id', club); if (lop) q = q.eq('ten_lop', lop); if (hlv) q = q.eq('nv_id', hlv);
-      const { data } = await q;
+      let { data } = await q;
+      data = (data||[]).filter(r=>matchQ(`${r.clubs?.ten_club||''} ${r.ten_lop} ${r.nhan_vien?.ho_ten||''}`, tk));
       const aoa = [['Club', 'Thứ', 'Giờ', 'Lớp', 'HLV']];
       for (const r of data || []) aoa.push([r.clubs?.ten_club || '', thuLabel(r.thu), `${hhmm(r.gio_bat_dau)}-${hhmm(r.gio_ket_thuc)}`, r.ten_lop, r.nhan_vien ? `${r.nhan_vien.ma_nv} · ${r.nhan_vien.ho_ten}` : 'Chưa xếp HLV']);
       return xlsx(aoa, 'TKB tuan', 'thoi-khoa-bieu-tuan.xlsx');
@@ -75,7 +82,8 @@ export async function GET(req) {
     const dates = che_do === 'khoang' ? dateList(sp.get('tu') || dvn, sp.get('den') || dvn) : [sp.get('ngay') || dvn];
     let q = sb.from('lich_lop').select('id,thu,gio_bat_dau,gio_ket_thuc,ten_lop,clubs!club_id(ten_club),nhan_vien!nv_id(ma_nv,ho_ten)').eq('dang_ap_dung', true).order('gio_bat_dau');
     if (club) q = q.eq('club_id', club); if (lop) q = q.eq('ten_lop', lop); if (hlv) q = q.eq('nv_id', hlv);
-    const { data: lich } = await q;
+    let { data: lich } = await q;
+    lich = (lich||[]).filter(l=>matchQ(`${l.clubs?.ten_club||''} ${l.ten_lop} ${l.nhan_vien?.ho_ten||''}`, tk));
     const byThu = {}; for (const l of lich || []) (byThu[l.thu] ||= []).push(l);
     const { data: cc } = await sb.from('cham_cong').select('lich_lop_id,ngay,trang_thai,gio_vao,gio_ra').gte('ngay', dates[0]).lte('ngay', dates[dates.length - 1]);
     const map = new Map(); for (const r of cc || []) if (r.lich_lop_id) map.set(r.lich_lop_id + '|' + r.ngay, r);

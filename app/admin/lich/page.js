@@ -1,3 +1,4 @@
+import { matchQ } from '../../../lib/search';
 import { supabaseAdmin } from '../../../lib/supabase';
 import { requireAdmin } from '../../../lib/guard';
 import { thuLabel } from '../../../lib/time';
@@ -13,6 +14,7 @@ export default async function LichPage({ searchParams }) {
   const fLop = searchParams?.lop || '';
   const fHlv = searchParams?.hlv || '';
   const anKhoa = searchParams?.an === '1';
+  const timkiem = searchParams?.q || '';
 
   const [{ data: clubs }, { data: nvList }, { data: allLop }] = await Promise.all([
     sb.from('clubs').select('id, ma_club, ten_club').order('ma_club'),
@@ -29,10 +31,11 @@ export default async function LichPage({ searchParams }) {
   if (fHlv) q = q.eq('nv_id', fHlv);
   if (anKhoa) q = q.eq('dang_ap_dung', true);
   const { data: lich } = await q;
+  const lichF = (lich || []).filter((l) => matchQ(`${l.clubs?.ten_club || ''} ${thuLabel(l.thu)} ${l.ten_lop} ${l.nhan_vien ? (l.nhan_vien.ma_nv + ' ' + l.nhan_vien.ho_ten) : ''}`, timkiem));
 
   return (
     <div className="stack">
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}><h1>Lịch lớp ({lich?.length || 0})</h1><a className="btn" href={`/api/admin/export?type=lich&club=${fClub}&lop=${encodeURIComponent(fLop)}&hlv=${fHlv}&an=${anKhoa ? "1" : ""}`}>Xuất Excel</a></div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}><h1>Lịch lớp ({lichF.length})</h1><a className="btn" href={`/api/admin/export?type=lich&club=${fClub}&lop=${encodeURIComponent(fLop)}&hlv=${fHlv}&an=${anKhoa ? "1" : ""}&q=${encodeURIComponent(timkiem)}`}>Xuất Excel</a></div>
 
       <div className="card">
         <h2>Thêm buổi lớp</h2>
@@ -57,6 +60,7 @@ export default async function LichPage({ searchParams }) {
 
       <div className="card">
         <form className="filters">
+            <div><label>Tìm kiếm</label><input name="q" defaultValue={timkiem} placeholder="Lớp, HLV, club..." /></div>
             <div><label>Lọc theo club</label>
               <select name="club" defaultValue={fClub}>
                 <option value="">Tất cả club</option>
@@ -87,8 +91,8 @@ export default async function LichPage({ searchParams }) {
         <table>
           <thead><tr><th>Club</th><th>Thứ</th><th>Giờ</th><th>Lớp</th><th>HLV</th><th>Trạng thái</th><th></th></tr></thead>
           <tbody>
-            {(lich || []).length === 0 && <tr><td colSpan="7" className="muted">Không có buổi lớp phù hợp.</td></tr>}
-            {(lich || []).map((l) => (
+            {lichF.length === 0 && <tr><td colSpan="7" className="muted">Không có buổi lớp phù hợp.</td></tr>}
+            {lichF.map((l) => (
               <tr key={l.id} style={l.dang_ap_dung ? undefined : { opacity: 0.6 }}>
                 <td className="muted">{l.clubs?.ten_club || '—'}</td>
                 <td>{thuLabel(l.thu)}</td>

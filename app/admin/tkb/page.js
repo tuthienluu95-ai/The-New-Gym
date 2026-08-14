@@ -1,6 +1,7 @@
+import { matchQ } from '../../../lib/search';
 import { supabaseAdmin } from '../../../lib/supabase';
 import { requireAdmin } from '../../../lib/guard';
-import { vnParts, fmtTime } from '../../../lib/time';
+import { vnParts, fmtTime, vnNowMinutes, hmToMin } from '../../../lib/time';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,6 +27,8 @@ function badge(tt) {
   if (tt === 'hoan_thanh') return <span className="tag green">Đã hoàn thành</span>;
   if (tt === 'dang_lam') return <span className="tag" style={{ background: 'var(--accent-weak)', color: 'var(--accent-dark)' }}>Đang dạy</span>;
   if (tt === 'quen_ra') return <span className="tag warn">Quên chấm ra</span>;
+  if (tt === 'trong') return <span className="tag warn">⚠ Trống (GV không đến)</span>;
+  if (tt === 'cho') return <span className="tag gray">Chưa tới giờ</span>;
   return <span className="tag gray">Chưa dạy</span>;
 }
 
@@ -41,6 +44,7 @@ export default async function TkbPage({ searchParams }) {
   const fLop = searchParams?.lop || '';
   const fHlv = searchParams?.hlv || '';
   const an = searchParams?.an === '1';
+  const timkiem = searchParams?.q || '';
 
   const [{ data: clubs }, { data: nvList }, { data: allLop }] = await Promise.all([
     sb.from('clubs').select('id, ten_club').order('ma_club'),
@@ -51,6 +55,7 @@ export default async function TkbPage({ searchParams }) {
 
   const filterBar = (
     <form className="filters">
+      <div><label>Tìm kiếm</label><input name="q" defaultValue={timkiem} placeholder="Lớp, HLV, club..." /></div>
       <div><label>Chế độ xem</label>
         <select name="che_do" defaultValue={che_do}>
           <option value="tuan">Theo tuần (lưới)</option>
@@ -84,7 +89,7 @@ export default async function TkbPage({ searchParams }) {
         </div>
       )}
       <button className="btn primary">Xem</button>
-      <a className="btn" href={`/api/admin/export?type=tkb&che_do=${che_do}&ngay=${ngay}&tu=${tu}&den=${den}&club=${fClub}&lop=${encodeURIComponent(fLop)}&hlv=${fHlv}&an=${an ? "1" : ""}`}>Xuất Excel</a>
+      <a className="btn" href={`/api/admin/export?type=tkb&che_do=${che_do}&ngay=${ngay}&tu=${tu}&den=${den}&club=${fClub}&lop=${encodeURIComponent(fLop)}&hlv=${fHlv}&an=${an ? "1" : ""}&q=${encodeURIComponent(timkiem)}`}>Xuất Excel</a>
     </form>
   );
 
@@ -97,13 +102,14 @@ export default async function TkbPage({ searchParams }) {
     if (fLop) q = q.eq('ten_lop', fLop);
     if (fHlv) q = q.eq('nv_id', fHlv);
     const { data: lich } = await q;
+    const lichF = (lich || []).filter((l) => matchQ(`${l.clubs?.ten_club || ''} ${l.ten_lop} ${l.nhan_vien?.ho_ten || ''}`, timkiem));
     const groups = new Map();
-    for (const l of (lich || [])) {
+    for (const l of lichF) {
       if (!groups.has(l.club_id)) groups.set(l.club_id, { ten_club: l.clubs?.ten_club || '', days: {} });
       (groups.get(l.club_id).days[l.thu] ||= []).push(l);
     }
     const clubGroups = Array.from(groups.values()).sort((a, b) => a.ten_club.localeCompare(b.ten_club));
-    const chuaXep = (lich || []).filter((l) => !l.nhan_vien).length;
+    const chuaXep = lichF.filter((l) => !l.nhan_vien).length;
     return (
       <div className="stack">
         <h1>Thời khoá biểu</h1>
@@ -147,8 +153,9 @@ export default async function TkbPage({ searchParams }) {
   if (fLop) q = q.eq('ten_lop', fLop);
   if (fHlv) q = q.eq('nv_id', fHlv);
   const { data: lich } = await q;
+    const lichF = (lich || []).filter((l) => matchQ(`${l.clubs?.ten_club || ''} ${l.ten_lop} ${l.nhan_vien?.ho_ten || ''}`, timkiem));
   const byThu = {};
-  for (const l of (lich || [])) (byThu[l.thu] ||= []).push(l);
+  for (const l of lichF) (byThu[l.thu] ||= []).push(l);
 
   const { data: cc } = await sb.from('cham_cong')
     .select('lich_lop_id, ngay, trang_thai, gio_vao, gio_ra')
@@ -156,12 +163,16 @@ export default async function TkbPage({ searchParams }) {
   const map = new Map();
   for (const r of (cc || [])) if (r.lich_lop_id) map.set(r.lich_lop_id + '|' + r.ngay, r);
 
+  const today = dateStr;
+  const nowMin = vnNowMinutes();
   const rows = [];
   for (const d of dates) {
     const thu = thuFromDate(d);
     for (const l of (byThu[thu] || [])) {
       const a = map.get(l.id + '|' + d);
-      const tt = a ? a.trang_thai : 'chua';
+      let tt;
+      if (a) tt = a.trang_thai;
+      else { const past = d < today || (d === today && nowMin > hmToMin(l.gio_bat_dau) + 15); tt = past ? 'trong' : 'cho'; }
       if (an && tt === 'hoan_thanh') continue;
       rows.push({ d, thu, l, tt, gio_vao: a?.gio_vao, gio_ra: a?.gio_ra });
     }
@@ -174,6 +185,7 @@ export default async function TkbPage({ searchParams }) {
       <h1>Thời khoá biểu</h1>
       <div className="card">{filterBar}
         <p className="muted">{title} · {rows.length} buổi</p>
+        {rows.filter((r) => r.tt === 'trong').length > 0 && <div className="err">Có {rows.filter((r) => r.tt === 'trong').length} lớp trống (GV không đến) — xem cột Trạng thái.</div>}
         <table>
           <thead><tr>{che_do === 'khoang' && <th>Ngày</th>}<th>Club</th><th>Giờ</th><th>Lớp</th><th>HLV</th><th>Vào</th><th>Ra</th><th>Trạng thái</th></tr></thead>
           <tbody>
