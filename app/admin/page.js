@@ -55,6 +55,7 @@ export default async function Dashboard({ searchParams }) {
           <div className="metric"><div className="n">{report.totals.so_gv}</div><div className="l">Giáo viên có công</div></div>
           <div className="metric"><div className="n">{report.totals.so_ca}</div><div className="l">Tổng số ca</div></div>
           <div className="metric"><div className="n" style={{ color: '#B7791F' }}>{report.totals.so_tre}</div><div className="l">Ca chấm công trễ</div></div>
+          <div className="metric"><div className="n" style={{ color: '#B7791F' }}>{report.totals.so_som}</div><div className="l">Ca ra sớm</div></div>
           <div className="metric"><div className="n">{vnd(report.totals.tong_tien)}</div><div className="l">Tổng tiền thù lao</div></div>
           <div className="metric"><div className="n" style={{ color: 'var(--warn)' }}>{report.missed}</div><div className="l">Lớp trống (GV không đến)</div></div>
         </div>
@@ -85,6 +86,19 @@ export default async function Dashboard({ searchParams }) {
         </table>
       </div>
 
+      {report.list.some((r) => r.ngay_som.length > 0) && (
+        <div className="card">
+          <h2>Chi tiết ra ca sớm</h2>
+          <table>
+            <thead><tr><th>Giáo viên</th><th>Số ca ra sớm</th><th>Các ngày</th></tr></thead>
+            <tbody>
+              {report.list.filter((r) => r.ngay_som.length > 0).map((r) => (
+                <tr key={r.ma_nv}><td>{r.ma_nv} · {r.ho_ten}</td><td><span className="tag warn">{r.so_som}</span></td><td className="muted">{r.ngay_som.join(', ')}</td></tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
       {report.missed > 0 && (
         <div className="card">
           <h2>Lớp trống — giáo viên không đến ({report.missed})</h2>

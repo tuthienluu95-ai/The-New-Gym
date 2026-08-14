@@ -19,10 +19,10 @@ export async function GET(req) {
   const sb = supabaseAdmin();
   const rep = await buildReport(sb, tu, den);
 
-  const aoa = [[`Báo cáo công GROUP-X · ${tu} đến ${den}`], [], ['Mã NV', 'Giáo viên', 'Số ca', 'Số ca trễ', 'Ngày trễ', 'Thù lao/ca (đ)', 'Tổng tiền (đ)']];
-  for (const r of rep.list) aoa.push([r.ma_nv, r.ho_ten, r.so_ca, r.so_tre, r.ngay_tre.join(', '), r.thu_lao, r.tong_tien]);
+  const aoa = [[`Báo cáo công GROUP-X · ${tu} đến ${den}`], [], ['Mã NV', 'Giáo viên', 'Số ca', 'Số ca trễ', 'Ngày trễ', 'Số ca ra sớm', 'Ngày ra sớm', 'Thù lao/ca (đ)', 'Tổng tiền (đ)']];
+  for (const r of rep.list) aoa.push([r.ma_nv, r.ho_ten, r.so_ca, r.so_tre, r.ngay_tre.join(', '), r.so_som, r.ngay_som.join(', '), r.thu_lao, r.tong_tien]);
   aoa.push([]);
-  aoa.push(['TỔNG', '', rep.totals.so_ca, rep.totals.so_tre, '', '', rep.totals.tong_tien]);
+  aoa.push(['TỔNG', '', rep.totals.so_ca, rep.totals.so_tre, '', rep.totals.so_som, '', '', rep.totals.tong_tien]);
 
   const ws = XLSX.utils.aoa_to_sheet(aoa);
   ws['!cols'] = [{ wch: 8 }, { wch: 26 }, { wch: 8 }, { wch: 9 }, { wch: 40 }, { wch: 14 }, { wch: 16 }];
