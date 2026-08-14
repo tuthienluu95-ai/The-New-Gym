@@ -56,6 +56,7 @@ export default async function Dashboard({ searchParams }) {
           <div className="metric"><div className="n">{report.totals.so_ca}</div><div className="l">Tổng số ca</div></div>
           <div className="metric"><div className="n" style={{ color: '#B7791F' }}>{report.totals.so_tre}</div><div className="l">Ca chấm công trễ</div></div>
           <div className="metric"><div className="n">{vnd(report.totals.tong_tien)}</div><div className="l">Tổng tiền thù lao</div></div>
+          <div className="metric"><div className="n" style={{ color: 'var(--warn)' }}>{report.missed}</div><div className="l">Lớp trống (GV không đến)</div></div>
         </div>
       </div>
 
@@ -84,6 +85,19 @@ export default async function Dashboard({ searchParams }) {
         </table>
       </div>
 
+      {report.missed > 0 && (
+        <div className="card">
+          <h2>Lớp trống — giáo viên không đến ({report.missed})</h2>
+          <table>
+            <thead><tr><th>Ngày</th><th>Club</th><th>Giờ</th><th>Lớp</th><th>HLV phụ trách</th></tr></thead>
+            <tbody>
+              {report.missedList.map((m, i) => (
+                <tr key={i}><td>{m.ngay}</td><td className="muted">{m.club}</td><td>{m.gio}</td><td><b>{m.lop}</b></td><td className="muted">{m.hlv}</td></tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
       {report.list.some((r) => r.ngay_tre.length > 0) && (
         <div className="card">
           <h2>Chi tiết chấm công trễ</h2>

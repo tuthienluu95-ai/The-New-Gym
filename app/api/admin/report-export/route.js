@@ -28,6 +28,11 @@ export async function GET(req) {
   ws['!cols'] = [{ wch: 8 }, { wch: 26 }, { wch: 8 }, { wch: 9 }, { wch: 40 }, { wch: 14 }, { wch: 16 }];
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Bao cao');
+  const aoa2 = [['Ngày', 'Club', 'Giờ', 'Lớp', 'HLV phụ trách']];
+  for (const m of rep.missedList) aoa2.push([m.ngay, m.club, m.gio, m.lop, m.hlv]);
+  const ws2 = XLSX.utils.aoa_to_sheet(aoa2);
+  ws2['!cols'] = [{ wch: 12 }, { wch: 22 }, { wch: 14 }, { wch: 18 }, { wch: 26 }];
+  XLSX.utils.book_append_sheet(wb, ws2, 'Lop trong');
   const buf = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
 
   return new Response(buf, {
