@@ -2,7 +2,8 @@ import { matchQ } from '../../../lib/search';
 import { supabaseAdmin } from '../../../lib/supabase';
 import { requireAdmin } from '../../../lib/guard';
 import { vnParts, fmtTime, thuLabel, vnMinutesOf, hmToMin } from '../../../lib/time';
-import { themChamCong, xoaChamCong } from './actions';
+import { xoaChamCong } from './actions';
+import ManualAddForm from './ManualAddForm';
 
 export const dynamic = 'force-dynamic';
 const hhmm = (t) => (t || '').slice(0, 5);
@@ -20,9 +21,10 @@ export default async function ChamCongPage({ searchParams }) {
       .eq('ngay', ngay).order('gio_vao', { ascending: true }),
     sb.from('nhan_vien').select('id, ma_nv, ho_ten').eq('trang_thai', 'dang_lam').order('ma_nv'),
     sb.from('clubs').select('id, ten_club').order('ma_club'),
-    sb.from('lich_lop').select('id, ten_lop, thu, gio_bat_dau, clubs!club_id ( ten_club )').eq('dang_ap_dung', true).order('thu').order('gio_bat_dau'),
+    sb.from('lich_lop').select('id, nv_id, club_id, ten_lop, thu, gio_bat_dau, clubs!club_id ( ten_club )').eq('dang_ap_dung', true).order('thu').order('gio_bat_dau'),
   ]);
   const rowsF = (rows || []).filter((r) => matchQ(`${r.nhan_vien?.ma_nv || ''} ${r.nhan_vien?.ho_ten || ''} ${r.clubs?.ten_club || ''} ${r.lich_lop?.ten_lop || ''} ${r.ghi_chu || ''}`, timkiem));
+  const classes = (lopAll || []).map((l) => ({ id: l.id, nv_id: l.nv_id, club_id: l.club_id, ten_lop: l.ten_lop, thu: l.thu, gio_bat_dau: l.gio_bat_dau, ten_club: l.clubs?.ten_club || '' }));
   const today = dateStr;
 
   return (
@@ -37,28 +39,7 @@ export default async function ChamCongPage({ searchParams }) {
       <div className="card">
         <h2>Thêm chấm công thủ công</h2>
         <p className="muted">Dùng khi mất điện/wifi khiến giáo viên không tự chấm được. Chọn lớp trong lịch để gắn đúng buổi (bỏ trống = "Lớp khác").</p>
-        <form action={themChamCong} className="form-grid">
-          <div><label>Nhân viên</label>
-            <select name="nv_id" required><option value="">— chọn —</option>
-              {(nvList || []).map((n) => <option key={n.id} value={n.id}>{n.ma_nv} · {n.ho_ten}</option>)}
-            </select>
-          </div>
-          <div><label>Ngày</label><input type="date" name="ngay" defaultValue={ngay} required /></div>
-          <div style={{ minWidth: 260 }}><label>Lớp (tuỳ chọn)</label>
-            <select name="lich_lop_id"><option value="">— Lớp khác (không gắn lịch) —</option>
-              {(lopAll || []).map((l) => <option key={l.id} value={l.id}>{l.clubs?.ten_club} · {thuLabel(l.thu)} · {hhmm(l.gio_bat_dau)} · {l.ten_lop}</option>)}
-            </select>
-          </div>
-          <div><label>Club (nếu chọn "Lớp khác")</label>
-            <select name="club_id"><option value="">—</option>
-              {(clubs || []).map((c) => <option key={c.id} value={c.id}>{c.ten_club}</option>)}
-            </select>
-          </div>
-          <div><label>Giờ vào</label><input type="time" name="gio_vao" required /></div>
-          <div><label>Giờ ra</label><input type="time" name="gio_ra" /></div>
-          <div><label>Ghi chú</label><input name="ghi_chu" placeholder="VD: mất điện, chấm bù" /></div>
-          <button className="btn primary">Thêm</button>
-        </form>
+        <ManualAddForm nvList={nvList || []} clubs={clubs || []} classes={classes} defaultNgay={ngay} />
       </div>
 
       <div className="card">
@@ -70,9 +51,9 @@ export default async function ChamCongPage({ searchParams }) {
           </form>
         </div>
         <table>
-          <thead><tr><th>Mã</th><th>Nhân viên</th><th>Club</th><th>Lớp</th><th>Vào</th><th>Ra</th><th>Trạng thái</th><th></th></tr></thead>
+          <thead><tr><th>Mã</th><th>Nhân viên</th><th>Club</th><th>Lớp</th><th>Ca lớp</th><th>Vào</th><th>Ra</th><th>Trạng thái</th><th></th></tr></thead>
           <tbody>
-            {rowsF.length === 0 && <tr><td colSpan="8" className="muted">Không có lượt chấm công nào trong ngày này.</td></tr>}
+            {rowsF.length === 0 && <tr><td colSpan="9" className="muted">Không có lượt chấm công nào trong ngày này.</td></tr>}
             {rowsF.map((r) => {
               const quenRa = r.trang_thai === 'quen_ra' || (!r.gio_ra && r.ngay < today);
               const lateMin = (r.lich_lop?.gio_bat_dau && r.gio_vao) ? (vnMinutesOf(r.gio_vao) - hmToMin(r.lich_lop.gio_bat_dau)) : 0;
@@ -83,6 +64,7 @@ export default async function ChamCongPage({ searchParams }) {
                   <td>{r.nhan_vien?.ho_ten}</td>
                   <td className="muted">{r.clubs?.ten_club}</td>
                   <td>{r.lich_lop?.ten_lop || <span className="muted">Lớp khác</span>}{r.ghi_chu ? <span className="muted"> · {r.ghi_chu}</span> : null}</td>
+                  <td className="muted">{r.lich_lop ? `${hhmm(r.lich_lop.gio_bat_dau)}–${hhmm(r.lich_lop.gio_ket_thuc)}` : '—'}</td>
                   <td>{fmtTime(r.gio_vao)}{lateMin > 0 ? <span className="warn-text"> · trễ {lateMin}p</span> : null}</td>
                   <td>{r.gio_ra ? fmtTime(r.gio_ra) : '—'}{earlyMin > 0 ? <span className="warn-text"> · ra sớm {earlyMin}p</span> : null}</td>
                   <td>
