@@ -7,7 +7,6 @@ export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 export const maxDuration = 60;
 
-const KEEP = 30;
 const PREFIX = 'backup-thenewgym-';
 const sheetFrom = (rows) => XLSX.utils.json_to_sheet(rows && rows.length ? rows : [{}]);
 const b64url = (buf) => Buffer.from(buf).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
@@ -75,15 +74,16 @@ async function uploadToDrive(token, folderId, filename, buffer) {
   return j;
 }
 
-async function cleanupOld(token, folderId) {
-  const q = encodeURIComponent(`'${folderId}' in parents and name contains '${PREFIX}' and trashed=false`);
-  const res = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)&orderBy=name desc&pageSize=200&supportsAllDrives=true&includeItemsFromAllDrives=true`, { headers: { Authorization: 'Bearer ' + token } });
+async function deleteSameName(token, folderId, filename) {
+  const q = encodeURIComponent(`'${folderId}' in parents and name = '${filename}' and trashed=false`);
+  const res = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id)&pageSize=50&supportsAllDrives=true&includeItemsFromAllDrives=true`, { headers: { Authorization: 'Bearer ' + token } });
   const j = await res.json();
-  const toDelete = (j.files || []).slice(KEEP);
-  for (const f of toDelete) {
+  let n = 0;
+  for (const f of (j.files || [])) {
     await fetch(`https://www.googleapis.com/drive/v3/files/${f.id}?supportsAllDrives=true`, { method: 'DELETE', headers: { Authorization: 'Bearer ' + token } });
+    n++;
   }
-  return toDelete.length;
+  return n;
 }
 
 export async function GET(req) {
@@ -99,9 +99,9 @@ export async function GET(req) {
     const sb = supabaseAdmin();
     const buffer = await buildBackupBuffer(sb);
     const filename = `${PREFIX}${vnParts().dateStr}.xlsx`;
+    const replaced = await deleteSameName(token, folderId, filename);
     const up = await uploadToDrive(token, folderId, filename, buffer);
-    const deleted = await cleanupOld(token, folderId);
-    return Response.json({ ok: true, file: filename, id: up.id, deleted });
+    return Response.json({ ok: true, file: filename, id: up.id, replaced });
   } catch (e) {
     return Response.json({ ok: false, error: String(e.message || e) }, { status: 500 });
   }
