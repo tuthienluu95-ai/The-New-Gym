@@ -63,17 +63,23 @@ export async function POST(req) {
   }
 
   const nowMin = vnNowMinutes();
+  const { data: takenRows } = await sb.from('cham_cong')
+    .select('lich_lop_id')
+    .eq('club_id', club.id).eq('ngay', dateStr)
+    .not('lich_lop_id', 'is', null)
+    .in('trang_thai', ['dang_lam', 'hoan_thanh', 'quen_ra']);
+  const takenSet = new Set((takenRows || []).map((r) => r.lich_lop_id));
   const { data: myRaw } = await sb.from('lich_lop')
     .select('id, ten_lop, gio_bat_dau, gio_ket_thuc')
     .eq('club_id', club.id).eq('nv_id', nv.id).eq('thu', thu).eq('dang_ap_dung', true).order('gio_bat_dau');
-  const classes = (myRaw || []).map((c) => ({ ...c, khoa: nowMin - hmToMin(c.gio_bat_dau) > LATE }));
+  const classes = (myRaw || []).map((c) => ({ ...c, khoa: nowMin - hmToMin(c.gio_bat_dau) > LATE, taken: takenSet.has(c.id) }));
 
   const { data: clubRaw } = await sb.from('lich_lop')
     .select('id, ten_lop, gio_bat_dau, gio_ket_thuc, nhan_vien!nv_id ( ho_ten )')
     .eq('club_id', club.id).eq('thu', thu).eq('dang_ap_dung', true).order('gio_bat_dau');
   const clubClasses = (clubRaw || []).map((c) => ({
     id: c.id, ten_lop: c.ten_lop, gio_bat_dau: c.gio_bat_dau, gio_ket_thuc: c.gio_ket_thuc,
-    hlv: c.nhan_vien?.ho_ten || '', khoa: nowMin - hmToMin(c.gio_bat_dau) > LATE,
+    hlv: c.nhan_vien?.ho_ten || '', khoa: nowMin - hmToMin(c.gio_bat_dau) > LATE, taken: takenSet.has(c.id),
   }));
 
   return NextResponse.json({ ok: true, sessionToken, ho_ten: nv.ho_ten, firstTime, mode: 'checkin', classes, clubClasses });

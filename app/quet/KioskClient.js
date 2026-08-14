@@ -72,10 +72,11 @@ export default function KioskClient({ club, token }) {
   }
 
   function lockedRow(c, key) {
+    const reason = c.taken ? 'Đã có người chấm công' : 'Đã khoá · trễ quá 15 phút';
     return (
       <div className="class-btn locked" key={key}>
         <div className="t">{c.ten_lop}{c.hlv ? <span style={{ fontWeight: 400 }}> · HLV: {c.hlv}</span> : null}</div>
-        <div className="s">{hhmm(c.gio_bat_dau)} – {hhmm(c.gio_ket_thuc)} · <span className="warn-text">Đã khoá · trễ quá 15 phút</span></div>
+        <div className="s">{hhmm(c.gio_bat_dau)} – {hhmm(c.gio_ket_thuc)} · <span className="warn-text">{reason}</span></div>
       </div>
     );
   }
@@ -108,7 +109,7 @@ export default function KioskClient({ club, token }) {
           {error && <div className="err">{error}</div>}
           <p className="muted">Chọn buổi lớp bạn đang bắt đầu để <b>vào ca</b>:</p>
           {classes.length === 0 && <div className="tag gray">Hôm nay bạn không có lớp tại club này.</div>}
-          {classes.map((c) => c.khoa ? lockedRow(c, c.id) : (
+          {classes.map((c) => (c.khoa || c.taken) ? lockedRow(c, c.id) : (
             <button key={c.id} className="class-btn" disabled={loading} onClick={() => doCheckin(c.id, null)}>
               <div className="t">{c.ten_lop}</div>
               <div className="s">{hhmm(c.gio_bat_dau)} – {hhmm(c.gio_ket_thuc)}</div>
@@ -129,7 +130,7 @@ export default function KioskClient({ club, token }) {
           {error && <div className="err">{error}</div>}
           <p className="muted">Các lớp hôm nay tại {club.ten_club}. Chọn lớp bạn đang hỗ trợ:</p>
           {clubClasses.length === 0 && <div className="tag gray">Hôm nay club không có lớp trong lịch.</div>}
-          {clubClasses.map((c) => c.khoa ? lockedRow(c, c.id) : (
+          {clubClasses.map((c) => (c.khoa || c.taken) ? lockedRow(c, c.id) : (
             <button key={c.id} className="class-btn" disabled={loading} onClick={() => doCheckin(c.id, c.hlv ? `Dạy thay cho ${c.hlv}` : 'Dạy thay')}>
               <div className="t">{c.ten_lop}</div>
               <div className="s">{hhmm(c.gio_bat_dau)} – {hhmm(c.gio_ket_thuc)}{c.hlv ? ` · dạy thay cho ${c.hlv}` : ''}</div>
