@@ -17,7 +17,7 @@ export default async function ChamCongPage({ searchParams }) {
 
   const [{ data: rows }, { data: nvList }, { data: clubs }, { data: lopAll }] = await Promise.all([
     sb.from('cham_cong')
-      .select('id, ngay, gio_vao, gio_ra, trang_thai, ghi_chu, nhan_vien!nv_id ( ma_nv, ho_ten ), clubs!club_id ( ten_club ), lich_lop!lich_lop_id ( ten_lop, gio_bat_dau, gio_ket_thuc )')
+      .select('id, ngay, gio_vao, gio_ra, trang_thai, ghi_chu, so_hoc_vien, nhan_vien!nv_id ( ma_nv, ho_ten ), clubs!club_id ( ten_club ), lich_lop!lich_lop_id ( ten_lop, gio_bat_dau, gio_ket_thuc )')
       .eq('ngay', ngay).order('gio_vao', { ascending: true }),
     sb.from('nhan_vien').select('id, ma_nv, ho_ten').eq('trang_thai', 'dang_lam').order('ma_nv'),
     sb.from('clubs').select('id, ten_club').order('ma_club'),
@@ -51,9 +51,9 @@ export default async function ChamCongPage({ searchParams }) {
           </form>
         </div>
         <table>
-          <thead><tr><th>Mã</th><th>Nhân viên</th><th>Club</th><th>Lớp</th><th>Ca lớp</th><th>Vào</th><th>Ra</th><th>Trạng thái</th><th></th></tr></thead>
+          <thead><tr><th>Mã</th><th>Nhân viên</th><th>Club</th><th>Lớp</th><th>Ca lớp</th><th>Vào</th><th>Ra</th><th>HV</th><th>Trạng thái</th><th></th></tr></thead>
           <tbody>
-            {rowsF.length === 0 && <tr><td colSpan="9" className="muted">Không có lượt chấm công nào trong ngày này.</td></tr>}
+            {rowsF.length === 0 && <tr><td colSpan="10" className="muted">Không có lượt chấm công nào trong ngày này.</td></tr>}
             {rowsF.map((r) => {
               const quenRa = r.trang_thai === 'quen_ra' || (!r.gio_ra && r.ngay < today);
               const lateMin = (r.lich_lop?.gio_bat_dau && r.gio_vao) ? (vnMinutesOf(r.gio_vao) - hmToMin(r.lich_lop.gio_bat_dau)) : 0;
@@ -67,6 +67,7 @@ export default async function ChamCongPage({ searchParams }) {
                   <td className="muted">{r.lich_lop ? `${hhmm(r.lich_lop.gio_bat_dau)}–${hhmm(r.lich_lop.gio_ket_thuc)}` : '—'}</td>
                   <td>{fmtTime(r.gio_vao)}{lateMin > 0 ? <span className="warn-text"> · trễ {lateMin}p</span> : null}</td>
                   <td>{r.gio_ra ? fmtTime(r.gio_ra) : '—'}{earlyMin > 0 ? <span className="warn-text"> · ra sớm {earlyMin}p</span> : null}</td>
+                  <td>{typeof r.so_hoc_vien === 'number' ? r.so_hoc_vien : <span className="muted">—</span>}{r.so_hoc_vien === 0 ? <span className="warn-text"> (50%)</span> : null}</td>
                   <td>
                     {quenRa ? <span className="tag warn">Quên chấm ra</span>
                       : r.trang_thai === 'hoan_thanh' ? <span className="tag green">Hoàn thành</span>

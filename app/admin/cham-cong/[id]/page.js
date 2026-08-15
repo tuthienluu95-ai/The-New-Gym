@@ -9,7 +9,7 @@ export default async function EditChamCong({ params }) {
   requireAdmin();
   const sb = supabaseAdmin();
   const { data: r } = await sb.from('cham_cong')
-    .select('id, ngay, gio_vao, gio_ra, trang_thai, ghi_chu, nhan_vien!nv_id ( ma_nv, ho_ten ), clubs!club_id ( ten_club ), lich_lop!lich_lop_id ( ten_lop )')
+    .select('id, ngay, gio_vao, gio_ra, trang_thai, ghi_chu, so_hoc_vien, nhan_vien!nv_id ( ma_nv, ho_ten ), clubs!club_id ( ten_club ), lich_lop!lich_lop_id ( ten_lop )')
     .eq('id', params.id).maybeSingle();
   if (!r) return <div className="card">Không tìm thấy lượt chấm công.</div>;
   return (
@@ -33,6 +33,7 @@ export default async function EditChamCong({ params }) {
               <option value="quen_ra">Quên chấm ra</option>
             </select>
           </div>
+          <div><label>Số học viên</label><input type="number" min="0" name="so_hoc_vien" defaultValue={typeof r.so_hoc_vien === 'number' ? r.so_hoc_vien : ''} placeholder="0 = 50% thù lao" /></div>
           <div><label>Ghi chú</label><input name="ghi_chu" defaultValue={r.ghi_chu || ''} placeholder="VD: mất điện, chấm bù" /></div>
           <div className="row-actions">
             <a className="btn" href="/admin/cham-cong">Huỷ</a>

@@ -17,7 +17,7 @@ export async function POST(req) {
   if (!(await bcrypt.compare(String(pin), nv.pin_hash))) return NextResponse.json({ ok: false, error: 'Sai mã PIN' }, { status: 400 });
 
   const { data: rows } = await sb.from('cham_cong')
-    .select('id, ngay, gio_vao, gio_ra, trang_thai, ghi_chu, clubs!club_id ( ten_club ), lich_lop!lich_lop_id ( ten_lop, gio_bat_dau, gio_ket_thuc )')
+    .select('id, ngay, gio_vao, gio_ra, trang_thai, ghi_chu, so_hoc_vien, clubs!club_id ( ten_club ), lich_lop!lich_lop_id ( ten_lop, gio_bat_dau, gio_ket_thuc )')
     .eq('nv_id', nv.id).gte('ngay', tu).lte('ngay', den)
     .order('ngay', { ascending: false }).order('gio_vao', { ascending: false });
 
@@ -34,7 +34,7 @@ export async function POST(req) {
       ca: r.lich_lop ? `${hhmm(r.lich_lop.gio_bat_dau)}–${hhmm(r.lich_lop.gio_ket_thuc)}` : '',
       vao: fmtTime(r.gio_vao), ra: r.gio_ra ? fmtTime(r.gio_ra) : '',
       late: late > 0 ? late : 0, early: early > 0 ? early : 0,
-      tt: quenRa ? 'quen_ra' : r.trang_thai, ghi_chu: r.ghi_chu || '',
+      tt: quenRa ? 'quen_ra' : r.trang_thai, ghi_chu: r.ghi_chu || '', hv: typeof r.so_hoc_vien === 'number' ? r.so_hoc_vien : null,
     };
   });
   return NextResponse.json({ ok: true, ho_ten: nv.ho_ten, rows: out, summary: { so_ca: out.length, so_tre, so_som } });

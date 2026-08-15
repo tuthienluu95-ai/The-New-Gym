@@ -39,6 +39,7 @@ export default function ManualAddForm({ nvList, clubs, classes, defaultNgay }) {
       </div>
       <div><label>Giờ vào</label><input type="time" name="gio_vao" required /></div>
       <div><label>Giờ ra</label><input type="time" name="gio_ra" /></div>
+      <div><label>Số học viên</label><input type="number" min="0" name="so_hoc_vien" placeholder="0 = 50% thù lao" /></div>
       <div><label>Ghi chú</label><input name="ghi_chu" placeholder="VD: mất điện, chấm bù" /></div>
       <button className="btn primary">Thêm</button>
       </form>

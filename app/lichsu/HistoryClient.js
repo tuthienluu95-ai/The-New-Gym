@@ -80,9 +80,9 @@ export default function HistoryClient() {
         {error && <div className="err">{error}</div>}
         <div className="card">
           <table>
-            <thead><tr><th>Ngày</th><th>Club</th><th>Lớp</th><th>Ca lớp</th><th>Vào</th><th>Ra</th><th>Trạng thái</th></tr></thead>
+            <thead><tr><th>Ngày</th><th>Club</th><th>Lớp</th><th>Ca lớp</th><th>Vào</th><th>Ra</th><th>HV</th><th>Trạng thái</th></tr></thead>
             <tbody>
-              {data.rows.length === 0 && <tr><td colSpan="7" className="muted">Không có lượt chấm công trong khoảng này.</td></tr>}
+              {data.rows.length === 0 && <tr><td colSpan="8" className="muted">Không có lượt chấm công trong khoảng này.</td></tr>}
               {data.rows.map((r, i) => (
                 <tr key={i}>
                   <td>{r.ngay}</td>
@@ -91,6 +91,7 @@ export default function HistoryClient() {
                   <td className="muted">{r.ca || '—'}</td>
                   <td>{r.vao}{r.late > 0 ? <span className="warn-text"> · trễ {r.late}p</span> : null}</td>
                   <td>{r.ra || '—'}{r.early > 0 ? <span className="warn-text"> · sớm {r.early}p</span> : null}</td>
+                  <td>{r.hv != null ? r.hv : <span className="muted">—</span>}</td>
                   <td>{badge(r.tt)}</td>
                 </tr>
               ))}

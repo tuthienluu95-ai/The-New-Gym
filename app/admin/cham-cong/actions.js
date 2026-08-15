@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
 // Ghép ngày (YYYY-MM-DD) + giờ (HH:MM) theo giờ VN -> timestamptz
+function intOrNull(v){const t=String(v||'').trim();if(t==='')return null;const n=parseInt(t,10);return Number.isFinite(n)?Math.max(0,n):null;}
 function iso(ngay, hhmm) {
   if (!hhmm) return null;
   return new Date(`${ngay}T${hhmm}:00+07:00`).toISOString();
@@ -37,7 +38,7 @@ export async function themChamCong(formData) {
   await sb.from('cham_cong').insert({
     nv_id, club_id, lich_lop_id, ngay,
     gio_vao: iso(ngay, gv), gio_ra: iso(ngay, gr),
-    trang_thai: gr ? 'hoan_thanh' : 'dang_lam', ghi_chu,
+    trang_thai: gr ? 'hoan_thanh' : 'dang_lam', ghi_chu, so_hoc_vien: intOrNull(formData.get('so_hoc_vien')),
   });
   back('&them=ok');
 }
@@ -52,7 +53,7 @@ export async function suaChamCong(formData) {
   const trang_thai = formData.get('trang_thai') || 'hoan_thanh';
   const ghi_chu = String(formData.get('ghi_chu') || '').trim() || null;
   await sb.from('cham_cong').update({
-    gio_vao: iso(ngay, gv), gio_ra: iso(ngay, gr), trang_thai, ghi_chu,
+    gio_vao: iso(ngay, gv), gio_ra: iso(ngay, gr), trang_thai, ghi_chu, so_hoc_vien: intOrNull(formData.get('so_hoc_vien')),
   }).eq('id', id);
   revalidatePath('/admin/cham-cong');
   redirect(`/admin/cham-cong?ngay=${ngay}`);
