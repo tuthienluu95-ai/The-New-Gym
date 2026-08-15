@@ -38,7 +38,7 @@ export async function themChamCong(formData) {
   await sb.from('cham_cong').insert({
     nv_id, club_id, lich_lop_id, ngay,
     gio_vao: iso(ngay, gv), gio_ra: iso(ngay, gr),
-    trang_thai: gr ? 'hoan_thanh' : 'dang_lam', ghi_chu, so_hoc_vien: intOrNull(formData.get('so_hoc_vien')),
+    trang_thai: gr ? 'hoan_thanh' : 'dang_lam', ghi_chu, so_hoc_vien: intOrNull(formData.get('so_hoc_vien')), thu_cong: true,
   });
   back('&them=ok');
 }
@@ -53,7 +53,7 @@ export async function suaChamCong(formData) {
   const trang_thai = formData.get('trang_thai') || 'hoan_thanh';
   const ghi_chu = String(formData.get('ghi_chu') || '').trim() || null;
   await sb.from('cham_cong').update({
-    gio_vao: iso(ngay, gv), gio_ra: iso(ngay, gr), trang_thai, ghi_chu, so_hoc_vien: intOrNull(formData.get('so_hoc_vien')),
+    gio_vao: iso(ngay, gv), gio_ra: iso(ngay, gr), trang_thai, ghi_chu, so_hoc_vien: intOrNull(formData.get('so_hoc_vien')), thu_cong: true,
   }).eq('id', id);
   revalidatePath('/admin/cham-cong');
   redirect(`/admin/cham-cong?ngay=${ngay}`);

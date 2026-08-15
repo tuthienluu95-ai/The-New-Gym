@@ -100,6 +100,19 @@ export default async function Dashboard({ searchParams }) {
           </table>
         </div>
       )}
+      {report.manualList.length > 0 && (
+        <div className="card">
+          <h2>Chấm công thủ công (admin nhập/sửa) — {report.manualList.length}</h2>
+          <table>
+            <thead><tr><th>Ngày</th><th>Club</th><th>Lớp</th><th>HLV</th><th>Vào</th><th>Ra</th><th>HV</th><th>Ghi chú</th></tr></thead>
+            <tbody>
+              {report.manualList.map((m, i) => (
+                <tr key={i}><td>{m.ngay}</td><td className="muted">{m.club}</td><td>{m.lop}</td><td className="muted">{m.hlv}</td><td>{m.vao}</td><td>{m.ra || '—'}</td><td>{m.hv}</td><td className="muted">{m.ghi_chu}</td></tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
       {report.hvList.length > 0 && (
         <div className="card">
           <h2>Lớp theo số học viên (thấp → cao)</h2>

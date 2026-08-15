@@ -46,8 +46,8 @@ export default async function LichPage({ searchParams }) {
             </select>
           </div>
           <div><label>Thứ</label><select name="thu" required>{THU.map((t) => <option key={t} value={t}>{thuLabel(t)}</option>)}</select></div>
-          <div><label>Giờ bắt đầu</label><input type="time" name="gio_bat_dau" required /></div>
-          <div><label>Giờ kết thúc</label><input type="time" name="gio_ket_thuc" required /></div>
+          <div><label>Giờ bắt đầu</label><input type="time" lang="en-GB" name="gio_bat_dau" required /></div>
+          <div><label>Giờ kết thúc</label><input type="time" lang="en-GB" name="gio_ket_thuc" required /></div>
           <div><label>Lớp</label><input name="ten_lop" required placeholder="VD: Vinyasa Yoga" /></div>
           <div><label>HLV phụ trách</label>
             <select name="nv_id"><option value="">— chọn —</option>

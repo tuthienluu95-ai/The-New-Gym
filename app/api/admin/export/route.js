@@ -57,13 +57,20 @@ export async function GET(req) {
   }
 
   if (type === 'cham-cong') {
-    const ngay = sp.get('ngay') || vnParts().dateStr;
     const today = vnParts().dateStr;
-    let { data } = await sb.from('cham_cong').select('ngay,gio_vao,gio_ra,trang_thai,ghi_chu,nhan_vien!nv_id(ma_nv,ho_ten),clubs!club_id(ten_club),lich_lop!lich_lop_id(ten_lop,gio_bat_dau,gio_ket_thuc)').eq('ngay', ngay).order('gio_vao');
-    data = (data||[]).filter(r=>matchQ(`${r.nhan_vien?.ma_nv||''} ${r.nhan_vien?.ho_ten||''} ${r.clubs?.ten_club||''} ${r.lich_lop?.ten_lop||''} ${r.ghi_chu||''}`, tk));
-    const aoa = [[`Chấm công ngày ${ngay}`], [], ['Mã NV', 'Họ tên', 'Club', 'Lớp', 'Ca lớp', 'Số HV', 'Ghi chú', 'Vào', 'Ra', 'Trạng thái']];
-    for (const r of data || []) { const quen = r.trang_thai === 'quen_ra' || (!r.gio_ra && r.ngay < today); const ca = r.lich_lop ? `${hhmm(r.lich_lop.gio_bat_dau)}-${hhmm(r.lich_lop.gio_ket_thuc)}` : ''; aoa.push([r.nhan_vien?.ma_nv || '', r.nhan_vien?.ho_ten || '', r.clubs?.ten_club || '', r.lich_lop?.ten_lop || 'Lớp khác', ca, (typeof r.so_hoc_vien === 'number' ? r.so_hoc_vien : ''), r.ghi_chu || '', fmtTime(r.gio_vao), r.gio_ra ? fmtTime(r.gio_ra) : '', quen ? 'Quên chấm ra' : (r.trang_thai === 'hoan_thanh' ? 'Hoàn thành' : 'Đang trong ca')]); }
-    return xlsx(aoa, 'Cham cong', `cham-cong-${ngay}.xlsx`);
+    const tu = sp.get('tu'), den = sp.get('den'), ngayOne = sp.get('ngay');
+    let q2 = sb.from('cham_cong').select('ngay,gio_vao,gio_ra,trang_thai,ghi_chu,so_hoc_vien,nhan_vien!nv_id(ma_nv,ho_ten),clubs!club_id(ten_club),lich_lop!lich_lop_id(ten_lop,gio_bat_dau,gio_ket_thuc)').order('ngay', { ascending: true }).order('gio_vao');
+    if (tu && den) q2 = q2.gte('ngay', tu).lte('ngay', den); else q2 = q2.eq('ngay', ngayOne || today);
+    let { data } = await q2;
+    data = (data || []).filter(r => matchQ(`${r.nhan_vien?.ma_nv||''} ${r.nhan_vien?.ho_ten||''} ${r.clubs?.ten_club||''} ${r.lich_lop?.ten_lop||''} ${r.ghi_chu||''}`, tk));
+    const aoa = [['Ngày', 'Mã NV', 'Họ tên', 'Club', 'Lớp', 'Ca lớp', 'Số HV', 'Ghi chú', 'Vào', 'Ra', 'Trạng thái']];
+    for (const r of data) {
+      const quen = r.trang_thai === 'quen_ra' || (!r.gio_ra && r.ngay < today);
+      const ca = r.lich_lop ? `${hhmm(r.lich_lop.gio_bat_dau)}-${hhmm(r.lich_lop.gio_ket_thuc)}` : '';
+      aoa.push([r.ngay, r.nhan_vien?.ma_nv || '', r.nhan_vien?.ho_ten || '', r.clubs?.ten_club || '', r.lich_lop?.ten_lop || 'Lớp khác', ca, (typeof r.so_hoc_vien === 'number' ? r.so_hoc_vien : ''), r.ghi_chu || '', fmtTime(r.gio_vao), r.gio_ra ? fmtTime(r.gio_ra) : '', quen ? 'Quên chấm ra' : (r.trang_thai === 'hoan_thanh' ? 'Hoàn thành' : 'Đang trong ca')]);
+    }
+    const fn = (tu && den) ? `cham-cong-${tu}_den_${den}.xlsx` : `cham-cong-${ngayOne || today}.xlsx`;
+    return xlsx(aoa, 'Cham cong', fn);
   }
 
   if (type === 'tkb') {

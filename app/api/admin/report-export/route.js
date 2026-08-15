@@ -38,6 +38,11 @@ export async function GET(req) {
   const ws3 = XLSX.utils.aoa_to_sheet(aoa3);
   ws3['!cols'] = [{ wch: 7 }, { wch: 12 }, { wch: 22 }, { wch: 18 }, { wch: 26 }];
   XLSX.utils.book_append_sheet(wb, ws3, 'So hoc vien');
+  const aoa4 = [['Ngày', 'Club', 'Lớp', 'HLV', 'Vào', 'Ra', 'Số HV', 'Ghi chú']];
+  for (const m of rep.manualList) aoa4.push([m.ngay, m.club, m.lop, m.hlv, m.vao, m.ra, m.hv, m.ghi_chu]);
+  const ws4 = XLSX.utils.aoa_to_sheet(aoa4);
+  ws4['!cols'] = [{ wch: 12 }, { wch: 20 }, { wch: 16 }, { wch: 24 }, { wch: 8 }, { wch: 8 }, { wch: 7 }, { wch: 24 }];
+  XLSX.utils.book_append_sheet(wb, ws4, 'Cham cong thu cong');
   const buf = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
 
   return new Response(buf, {
