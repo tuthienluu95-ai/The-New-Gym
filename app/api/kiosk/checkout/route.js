@@ -16,7 +16,10 @@ export async function POST(req) {
     .order('gio_vao', { ascending: false }).limit(1).maybeSingle();
   if (!open) return NextResponse.json({ ok: false, error: 'Không tìm thấy buổi đang mở' }, { status: 400 });
 
-  const hv = (so_hoc_vien === undefined || so_hoc_vien === null || so_hoc_vien === '') ? null : Math.max(0, parseInt(so_hoc_vien, 10) || 0);
+  const hv = parseInt(so_hoc_vien, 10);
+  if (!Number.isInteger(hv) || hv < 0) {
+    return NextResponse.json({ ok: false, error: 'Bắt buộc nhập số học viên (≥ 0) để kết thúc buổi dạy.' }, { status: 400 });
+  }
   const { data, error } = await sb.from('cham_cong')
     .update({ gio_ra: new Date().toISOString(), trang_thai: 'hoan_thanh', so_hoc_vien: hv })
     .eq('id', open.id).select('gio_ra, lich_lop!lich_lop_id ( ten_lop )').single();

@@ -56,11 +56,12 @@ export default function KioskClient({ club, token }) {
   }
 
   async function doCheckout() {
-    if (soHV === '' || Number(soHV) < 0) { setError('Vui lòng nhập số học viên (nhập 0 nếu không có ai)'); return; }
+    const hvNum = parseInt(soHV, 10);
+    if (soHV === '' || String(soHV).trim() === '' || !Number.isInteger(hvNum) || hvNum < 0) { setError('Bắt buộc nhập số học viên (số nguyên ≥ 0, nhập 0 nếu không có ai) để kết thúc buổi.'); return; }
     setError(''); setLoading(true);
     try {
       const r = await fetch('/api/kiosk/checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sessionToken: session.sessionToken, so_hoc_vien: Number(soHV) }) });
+        body: JSON.stringify({ sessionToken: session.sessionToken, so_hoc_vien: hvNum }) });
       const d = await r.json();
       if (!d.ok) { setError(d.error || 'Có lỗi xảy ra'); setLoading(false); return; }
       setResult({ kind: 'out', ten_lop: d.ten_lop, gio: d.gio_ra }); setStep('done');
@@ -158,7 +159,7 @@ export default function KioskClient({ club, token }) {
             <div className="s">Vào lúc {fmtTime(openSession.gio_vao)}</div>
           </div>
           <div><label>Số học viên tham gia buổi này</label>
-            <input className="big" type="number" min="0" inputMode="numeric" value={soHV} onChange={(e) => setSoHV(e.target.value)} placeholder="Nhập số học viên (0 nếu không có)" />
+            <input type="number" min="0" inputMode="numeric" value={soHV} onChange={(e) => setSoHV(e.target.value)} placeholder="Nhập số học viên" />
             <p className="muted" style={{ marginTop: 4 }}>Lưu ý: nếu 0 học viên, buổi được tính 50% thù lao.</p>
           </div>
           <button className="btn primary big" disabled={loading} onClick={doCheckout}>{loading ? 'Đang xử lý…' : 'Kết thúc buổi dạy'}</button>
