@@ -14,7 +14,11 @@ export default function ManualAddForm({ nvList, clubs, classes, defaultNgay }) {
   const opts = classes.filter((c) => c.nv_id === nv && (!thu || c.thu === thu));
 
   return (
-    <form action={themChamCong} className="manual-grid">
+    <>
+      {nv && opts.length === 0 && (
+        <div className="muted" style={{ marginBottom: 10 }}>Lưu ý: HLV này không có lớp vào {THU[thu] || 'ngày đã chọn'} — hãy chọn "Lớp khác".</div>
+      )}
+      <form action={themChamCong} className="manual-grid">
       <div><label>Nhân viên</label>
         <select name="nv_id" value={nv} onChange={(e) => { setNv(e.target.value); setLop(''); }} required>
           <option value="">— chọn —</option>
@@ -29,7 +33,6 @@ export default function ManualAddForm({ nvList, clubs, classes, defaultNgay }) {
           <option value="">— Lớp khác —</option>
           {opts.map((c) => <option key={c.id} value={c.id}>{hhmm(c.gio_bat_dau)} · {c.ten_lop} · {c.ten_club}</option>)}
         </select>
-        {nv && opts.length === 0 && <div className="muted" style={{ fontSize: 12, marginTop: 4 }}>HLV này không có lớp vào {THU[thu] || 'ngày đã chọn'} — chọn "Lớp khác".</div>}
       </div>
       <div><label>Club (nếu "Lớp khác")</label>
         <select name="club_id"><option value="">—</option>{clubs.map((c) => <option key={c.id} value={c.id}>{c.ten_club}</option>)}</select>
@@ -38,6 +41,7 @@ export default function ManualAddForm({ nvList, clubs, classes, defaultNgay }) {
       <div><label>Giờ ra</label><input type="time" name="gio_ra" /></div>
       <div><label>Ghi chú</label><input name="ghi_chu" placeholder="VD: mất điện, chấm bù" /></div>
       <button className="btn primary">Thêm</button>
-    </form>
+      </form>
+    </>
   );
 }
