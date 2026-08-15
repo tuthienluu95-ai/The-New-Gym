@@ -6,8 +6,9 @@ import { redirect } from 'next/navigation';
 
 // Ghép ngày (YYYY-MM-DD) + giờ (HH:MM) theo giờ VN -> timestamptz
 function intOrNull(v){const t=String(v||'').trim();if(t==='')return null;const n=parseInt(t,10);return Number.isFinite(n)?Math.max(0,n):null;}
+const HHMM = /^([01]\d|2[0-3]):[0-5]\d$/;
 function iso(ngay, hhmm) {
-  if (!hhmm) return null;
+  if (!hhmm || !HHMM.test(String(hhmm).trim())) return null;
   return new Date(`${ngay}T${hhmm}:00+07:00`).toISOString();
 }
 
@@ -23,7 +24,7 @@ export async function themChamCong(formData) {
   const ghi_chu = String(formData.get('ghi_chu') || '').trim() || 'Chấm công thủ công';
   const back = (extra) => { revalidatePath('/admin/cham-cong'); redirect(`/admin/cham-cong?ngay=${ngay}${extra}`); };
 
-  if (!nv_id || !ngay || !gv) back('&loi=thieu');
+  if (!nv_id || !ngay || !HHMM.test(gv)) back('&loi=thieu');
 
   if (lich_lop_id) {
     const { data: ll } = await sb.from('lich_lop').select('club_id').eq('id', lich_lop_id).maybeSingle();

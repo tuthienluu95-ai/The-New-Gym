@@ -50,8 +50,8 @@ export default function ManualAddForm({ nvList, clubs, classes, defaultNgay }) {
         <div><label>Club (nếu "Lớp khác")</label>
           <select name="club_id"><option value="">—</option>{clubs.map((c) => <option key={c.id} value={c.id}>{c.ten_club}</option>)}</select>
         </div>
-        <div><label>Giờ vào</label><input type="time" lang="en-GB" name="gio_vao" required /></div>
-        <div><label>Giờ ra</label><input type="time" lang="en-GB" name="gio_ra" /></div>
+        <div><label>Giờ vào</label><input type="text" inputMode="numeric" pattern="([01][0-9]|2[0-3]):[0-5][0-9]" placeholder="HH:MM" maxLength="5" name="gio_vao" required /></div>
+        <div><label>Giờ ra</label><input type="text" inputMode="numeric" pattern="([01][0-9]|2[0-3]):[0-5][0-9]" placeholder="HH:MM" maxLength="5" name="gio_ra" /></div>
         <div><label>Số học viên</label><input type="number" min="0" name="so_hoc_vien" placeholder="0 = 50% thù lao" /></div>
         <div><label>Ghi chú</label><input name="ghi_chu" placeholder="VD: mất điện, chấm bù" /></div>
         <button className="btn primary">Thêm</button>

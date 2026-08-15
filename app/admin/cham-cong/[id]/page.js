@@ -23,8 +23,8 @@ export default async function EditChamCong({ params }) {
           <input type="hidden" name="id" value={r.id} />
           <input type="hidden" name="ngay" value={r.ngay} />
           <div className="form-grid">
-            <div><label>Giờ vào</label><input type="time" lang="en-GB" name="gio_vao" defaultValue={fmtTime(r.gio_vao)} required /></div>
-            <div><label>Giờ ra</label><input type="time" lang="en-GB" name="gio_ra" defaultValue={r.gio_ra ? fmtTime(r.gio_ra) : ''} /></div>
+            <div><label>Giờ vào</label><input type="text" inputMode="numeric" pattern="([01][0-9]|2[0-3]):[0-5][0-9]" placeholder="HH:MM" maxLength="5" name="gio_vao" defaultValue={fmtTime(r.gio_vao)} required /></div>
+            <div><label>Giờ ra</label><input type="text" inputMode="numeric" pattern="([01][0-9]|2[0-3]):[0-5][0-9]" placeholder="HH:MM" maxLength="5" name="gio_ra" defaultValue={r.gio_ra ? fmtTime(r.gio_ra) : ''} /></div>
           </div>
           <div><label>Trạng thái</label>
             <select name="trang_thai" defaultValue={r.trang_thai}>
