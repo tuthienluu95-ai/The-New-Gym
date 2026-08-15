@@ -98,6 +98,7 @@ export default function KioskClient({ club, token }) {
             <input className="big" type="password" inputMode="numeric" value={pin} onChange={(e) => setPin(e.target.value)} placeholder="••••" /></div>
           <button className="btn primary big" disabled={loading}>{loading ? 'Đang xử lý…' : 'Tiếp tục'}</button>
           <p className="muted center">Hệ thống sẽ tự nhận biết bạn đang <b>vào ca</b> hay <b>ra ca</b>. Lần đầu, mã PIN bạn nhập sẽ được đặt làm PIN. Hãy cho phép truy cập vị trí khi được hỏi.</p>
+          <p className="center"><a href="/lichsu">Xem lịch sử chấm công của tôi →</a></p>
         </form>
       )}
 
