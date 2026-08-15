@@ -14,7 +14,7 @@ export default function ManualAddForm({ nvList, clubs, classes, defaultNgay }) {
   const opts = classes.filter((c) => c.nv_id === nv && (!thu || c.thu === thu));
 
   return (
-    <form action={themChamCong} className="form-grid">
+    <form action={themChamCong} className="manual-grid">
       <div><label>Nhân viên</label>
         <select name="nv_id" value={nv} onChange={(e) => { setNv(e.target.value); setLop(''); }} required>
           <option value="">— chọn —</option>
@@ -24,7 +24,7 @@ export default function ManualAddForm({ nvList, clubs, classes, defaultNgay }) {
       <div><label>Ngày</label>
         <input type="date" name="ngay" value={ngay} onChange={(e) => { setNgay(e.target.value); setLop(''); }} required />
       </div>
-      <div style={{ minWidth: 220 }}><label>Lớp</label>
+      <div><label>Lớp</label>
         <select name="lich_lop_id" value={lop} onChange={(e) => setLop(e.target.value)}>
           <option value="">— Lớp khác —</option>
           {opts.map((c) => <option key={c.id} value={c.id}>{hhmm(c.gio_bat_dau)} · {c.ten_lop} · {c.ten_club}</option>)}

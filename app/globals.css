@@ -132,3 +132,8 @@ tr:last-child td{border-bottom:none}
 .tkb-cell.warn{border-left-color:var(--warn);background:var(--warn-weak)}
 .tkb-cell.warn .hlv{color:var(--warn);font-weight:600}
 .tkb-empty{color:var(--muted);font-size:12px;text-align:center;padding:6px 0}
+
+.manual-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;align-items:end}
+.manual-grid select,.manual-grid input{width:100%}
+@media(max-width:860px){.manual-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.manual-grid{grid-template-columns:1fr}}
