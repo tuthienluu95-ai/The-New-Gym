@@ -115,7 +115,7 @@ export default async function Dashboard({ searchParams }) {
       )}
       {report.hvList.length > 0 && (
         <div className="card">
-          <h2>Lớp theo số học viên (thấp → cao)</h2>
+          <h2>Lớp ít học viên (≤ 5 HV, thấp → cao)</h2>
           <p className="muted" style={{ marginTop: 0 }}>Buổi 0 học viên được tính 50% thù lao; có học viên tính 100%.</p>
           <table>
             <thead><tr><th>Số HV</th><th>Ngày</th><th>Club</th><th>Lớp</th><th>HLV</th></tr></thead>
