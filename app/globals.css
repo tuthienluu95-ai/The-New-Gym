@@ -141,3 +141,22 @@ tr:last-child td{border-bottom:none}
 .combo-list{position:absolute;z-index:30;left:0;right:0;top:100%;margin-top:4px;background:#fff;border:1px solid var(--border);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.14);max-height:240px;overflow:auto}
 .combo-item{padding:8px 12px;cursor:pointer;font-size:14px}
 .combo-item:hover{background:var(--accent-weak)}
+
+/* ===== Trang Báo cáo ===== */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}
+.kpi{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px;border-top:3px solid #1591D6}
+.kpi-v{font-size:24px;font-weight:800;color:#14202B;line-height:1.1}
+.kpi-l{color:#6b7280;font-size:13px;margin-top:4px}
+.chart-card h2{font-size:15px}
+
+/* In ra PDF */
+@media print {
+  @page { size: A4 landscape; margin: 12mm; }
+  .nav, .noprint, form.filters { display: none !important; }
+  .print-only { display: block !important; }
+  body { background: #fff !important; }
+  .report-page { max-width: 100% !important; }
+  .kpi, .chart-card, .card { break-inside: avoid; box-shadow: none !important; }
+  .kpi-grid { grid-template-columns: repeat(6, 1fr) !important; }
+  h1 { font-size: 20px; }
+}
