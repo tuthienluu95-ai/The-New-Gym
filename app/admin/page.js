@@ -118,10 +118,10 @@ export default async function Dashboard({ searchParams }) {
           <h2>Lớp ít học viên (≤ 5 HV, thấp → cao)</h2>
           <p className="muted" style={{ marginTop: 0 }}>Buổi 0 học viên được tính 50% thù lao; có học viên tính 100%.</p>
           <table>
-            <thead><tr><th>Số HV</th><th>Ngày</th><th>Club</th><th>Lớp</th><th>HLV</th></tr></thead>
+            <thead><tr><th>Số HV</th><th>Ngày</th><th>Khung giờ</th><th>Club</th><th>Lớp</th><th>HLV</th></tr></thead>
             <tbody>
               {report.hvList.map((h, i) => (
-                <tr key={i}><td><b>{h.so_hoc_vien}</b>{h.so_hoc_vien === 0 ? <span className="warn-text"> (50%)</span> : null}</td><td>{h.ngay}</td><td className="muted">{h.club}</td><td>{h.lop}</td><td className="muted">{h.hlv}</td></tr>
+                <tr key={i}><td><b>{h.so_hoc_vien}</b>{h.so_hoc_vien === 0 ? <span className="warn-text"> (50%)</span> : null}</td><td>{h.ngay}</td><td>{h.gio}</td><td className="muted">{h.club}</td><td>{h.lop}</td><td className="muted">{h.hlv}</td></tr>
               ))}
             </tbody>
           </table>

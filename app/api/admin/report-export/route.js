@@ -33,10 +33,10 @@ export async function GET(req) {
   const ws2 = XLSX.utils.aoa_to_sheet(aoa2);
   ws2['!cols'] = [{ wch: 12 }, { wch: 22 }, { wch: 14 }, { wch: 18 }, { wch: 26 }];
   XLSX.utils.book_append_sheet(wb, ws2, 'Lop trong');
-  const aoa3 = [['Số HV', 'Ngày', 'Club', 'Lớp', 'HLV']];
-  for (const h of rep.hvList) aoa3.push([h.so_hoc_vien, h.ngay, h.club, h.lop, h.hlv]);
+  const aoa3 = [['Số HV', 'Ngày', 'Khung giờ', 'Club', 'Lớp', 'HLV']];
+  for (const h of rep.hvList) aoa3.push([h.so_hoc_vien, h.ngay, h.gio, h.club, h.lop, h.hlv]);
   const ws3 = XLSX.utils.aoa_to_sheet(aoa3);
-  ws3['!cols'] = [{ wch: 7 }, { wch: 12 }, { wch: 22 }, { wch: 18 }, { wch: 26 }];
+  ws3['!cols'] = [{ wch: 7 }, { wch: 12 }, { wch: 14 }, { wch: 22 }, { wch: 18 }, { wch: 26 }];
   XLSX.utils.book_append_sheet(wb, ws3, 'So hoc vien');
   const aoa4 = [['Ngày', 'Club', 'Lớp', 'HLV', 'Vào', 'Ra', 'Số HV', 'Ghi chú']];
   for (const m of rep.manualList) aoa4.push([m.ngay, m.club, m.lop, m.hlv, m.vao, m.ra, m.hv, m.ghi_chu]);
