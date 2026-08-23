@@ -3,6 +3,13 @@ import { useState } from 'react';
 import { fmtTime } from '../../lib/time';
 
 const hhmm = (t) => (t || '').slice(0, 5);
+function getDeviceId() {
+  try {
+    let id = localStorage.getItem('tng_device_id');
+    if (!id) { id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : (Date.now().toString(36) + Math.random().toString(16).slice(2)); localStorage.setItem('tng_device_id', id); }
+    return id;
+  } catch { return null; }
+}
 
 export default function KioskClient({ club, token }) {
   const [step, setStep] = useState('auth'); // auth | checkin | substitute | checkout | done
@@ -33,7 +40,7 @@ export default function KioskClient({ club, token }) {
     try {
       const pos = await getPos();
       const r = await fetch('/api/kiosk/auth', { method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, ma_nv: maNv, pin, lat: pos?.lat ?? null, lng: pos?.lng ?? null }) });
+        body: JSON.stringify({ token, ma_nv: maNv, pin, lat: pos?.lat ?? null, lng: pos?.lng ?? null, device_id: getDeviceId() }) });
       const d = await r.json();
       if (!d.ok) { setError(d.error || 'Có lỗi xảy ra'); setLoading(false); return; }
       setSession({ sessionToken: d.sessionToken, ho_ten: d.ho_ten, firstTime: d.firstTime });
@@ -47,7 +54,7 @@ export default function KioskClient({ club, token }) {
     setError(''); setLoading(true);
     try {
       const r = await fetch('/api/kiosk/checkin', { method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sessionToken: session.sessionToken, lich_lop_id, ghi_chu }) });
+        body: JSON.stringify({ sessionToken: session.sessionToken, lich_lop_id, ghi_chu, device_id: getDeviceId() }) });
       const d = await r.json();
       if (!d.ok) { setError(d.error || 'Có lỗi xảy ra'); setLoading(false); return; }
       setResult({ kind: 'in', ten_lop: d.ten_lop, gio: d.gio_vao }); setStep('done');
@@ -61,7 +68,7 @@ export default function KioskClient({ club, token }) {
     setError(''); setLoading(true);
     try {
       const r = await fetch('/api/kiosk/checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sessionToken: session.sessionToken, so_hoc_vien: hvNum }) });
+        body: JSON.stringify({ sessionToken: session.sessionToken, so_hoc_vien: hvNum, device_id: getDeviceId() }) });
       const d = await r.json();
       if (!d.ok) { setError(d.error || 'Có lỗi xảy ra'); setLoading(false); return; }
       setResult({ kind: 'out', ten_lop: d.ten_lop, gio: d.gio_ra }); setStep('done');

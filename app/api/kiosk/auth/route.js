@@ -4,6 +4,7 @@ import { supabaseAdmin } from '../../../../lib/supabase';
 import { signToken, verifyToken } from '../../../../lib/auth';
 import { vnParts, vnNowMinutes, hmToMin } from '../../../../lib/time';
 import { haversineMeters } from '../../../../lib/geo';
+import { logCham, reqMeta } from '../../../../lib/chamlog';
 
 export const dynamic = 'force-dynamic';
 const LATE = 15;
@@ -20,30 +21,39 @@ async function resolveClub(sb, c) {
 }
 
 export async function POST(req) {
-  const { token, ma_nv, pin, lat, lng } = await req.json();
-  if (!token || !ma_nv || !pin) return NextResponse.json({ ok: false, error: 'Vui lòng nhập đủ mã và PIN' }, { status: 400 });
-
+  const { token, ma_nv, pin, lat, lng, device_id } = await req.json();
   const sb = supabaseAdmin();
+  const meta = reqMeta(req);
+  const latN = lat != null ? Number(lat) : null;
+  const lngN = lng != null ? Number(lng) : null;
+  const rawToken = (token && !String(token).includes('.')) ? token : null;
+  let clubId = null, dist = null;
+  const base = () => ({ buoc: 'auth', ma_nv: ma_nv ? String(ma_nv).trim() : null, qr_token: rawToken, device_id: device_id || null, lat: latN, lng: lngN, club_id: clubId, khoang_cach_m: dist != null ? Math.round(dist) : null, ...meta });
+  const deny = async (error, st = 400) => { await logCham(sb, { ...base(), ket_qua: 'that_bai', ly_do: error }); return NextResponse.json({ ok: false, error }, { status: st }); };
+
+  if (!token || !ma_nv || !pin) return deny('Vui lòng nhập đủ mã và PIN');
+
   const club = await resolveClub(sb, token);
-  if (!club) return NextResponse.json({ ok: false, error: 'Mã QR không hợp lệ hoặc đã hết hạn, vui lòng quét lại' }, { status: 400 });
+  if (!club) return deny('Mã QR không hợp lệ hoặc đã hết hạn, vui lòng quét lại');
+  clubId = club.id;
 
   if (club.lat != null && club.lng != null) {
-    if (lat == null || lng == null) return NextResponse.json({ ok: false, error: 'Vui lòng bật định vị (GPS) và cho phép truy cập vị trí để chấm công' }, { status: 400 });
-    const d = haversineMeters(Number(lat), Number(lng), Number(club.lat), Number(club.lng));
+    if (latN == null || lngN == null) return deny('Vui lòng bật định vị (GPS) và cho phép truy cập vị trí để chấm công');
+    dist = haversineMeters(latN, lngN, Number(club.lat), Number(club.lng));
     const radius = club.ban_kinh_m || 200;
-    if (d > radius) return NextResponse.json({ ok: false, error: `Bạn đang cách club khoảng ${Math.round(d)}m (ngoài phạm vi ${radius}m). Vui lòng chấm công tại club.` }, { status: 400 });
+    if (dist > radius) return deny(`Bạn đang cách club khoảng ${Math.round(dist)}m (ngoài phạm vi ${radius}m). Vui lòng chấm công tại club.`);
   }
 
   const { data: nv } = await sb.from('nhan_vien').select('id, ho_ten, pin_hash, trang_thai').eq('ma_nv', String(ma_nv).trim()).maybeSingle();
-  if (!nv) return NextResponse.json({ ok: false, error: 'Mã nhân viên không tồn tại' }, { status: 400 });
-  if (nv.trang_thai === 'da_nghi') return NextResponse.json({ ok: false, error: 'Tài khoản đã nghỉ việc' }, { status: 400 });
+  if (!nv) return deny('Mã nhân viên không tồn tại');
+  if (nv.trang_thai === 'da_nghi') return deny('Tài khoản đã nghỉ việc');
 
   let firstTime = false;
   if (!nv.pin_hash) {
     await sb.from('nhan_vien').update({ pin_hash: await bcrypt.hash(String(pin), 10) }).eq('id', nv.id);
     firstTime = true;
   } else {
-    if (!(await bcrypt.compare(String(pin), nv.pin_hash))) return NextResponse.json({ ok: false, error: 'Sai mã PIN' }, { status: 400 });
+    if (!(await bcrypt.compare(String(pin), nv.pin_hash))) return deny('Sai mã PIN');
   }
 
   const sessionToken = signToken({ nv_id: nv.id, club_id: club.id }, 300);
@@ -57,6 +67,7 @@ export async function POST(req) {
     if (open.ngay < dateStr) {
       await sb.from('cham_cong').update({ trang_thai: 'quen_ra' }).eq('id', open.id);
     } else {
+      await logCham(sb, { ...base(), nv_id: nv.id, ket_qua: 'thanh_cong', ly_do: 'Đăng nhập kiosk OK (mở màn kết thúc buổi)' });
       return NextResponse.json({ ok: true, sessionToken, ho_ten: nv.ho_ten, firstTime, mode: 'checkout',
         openSession: { gio_vao: open.gio_vao, ten_lop: open.lich_lop?.ten_lop || 'Lớp khác' } });
     }
@@ -82,5 +93,6 @@ export async function POST(req) {
     hlv: c.nhan_vien?.ho_ten || '', khoa: nowMin - hmToMin(c.gio_bat_dau) > LATE, taken: takenSet.has(c.id),
   }));
 
+  await logCham(sb, { ...base(), nv_id: nv.id, ket_qua: 'thanh_cong', ly_do: 'Đăng nhập kiosk OK (màn chọn lớp)' });
   return NextResponse.json({ ok: true, sessionToken, ho_ten: nv.ho_ten, firstTime, mode: 'checkin', classes, clubClasses });
 }
