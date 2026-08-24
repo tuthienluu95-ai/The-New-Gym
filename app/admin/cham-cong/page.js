@@ -22,10 +22,10 @@ export default async function ChamCongPage({ searchParams }) {
       .gte('ngay', tu).lte('ngay', den).order('ngay', { ascending: false }).order('gio_vao', { ascending: true }),
     sb.from('nhan_vien').select('id, ma_nv, ho_ten').eq('trang_thai', 'dang_lam').order('ma_nv'),
     sb.from('clubs').select('id, ten_club').order('ma_club'),
-    sb.from('lich_lop').select('id, nv_id, club_id, ten_lop, thu, gio_bat_dau, clubs!club_id ( ten_club )').eq('dang_ap_dung', true).order('thu').order('gio_bat_dau'),
+    sb.from('lich_lop').select('id, nv_id, club_id, ten_lop, thu, gio_bat_dau, gio_ket_thuc, clubs!club_id ( ten_club )').eq('dang_ap_dung', true).order('thu').order('gio_bat_dau'),
   ]);
   const rowsF = (rows || []).filter((r) => matchQ(`${r.nhan_vien?.ma_nv || ''} ${r.nhan_vien?.ho_ten || ''} ${r.clubs?.ten_club || ''} ${r.lich_lop?.ten_lop || ''} ${r.ghi_chu || ''}`, timkiem));
-  const classes = (lopAll || []).map((l) => ({ id: l.id, nv_id: l.nv_id, club_id: l.club_id, ten_lop: l.ten_lop, thu: l.thu, gio_bat_dau: l.gio_bat_dau, ten_club: l.clubs?.ten_club || '' }));
+  const classes = (lopAll || []).map((l) => ({ id: l.id, nv_id: l.nv_id, club_id: l.club_id, ten_lop: l.ten_lop, thu: l.thu, gio_bat_dau: l.gio_bat_dau, gio_ket_thuc: l.gio_ket_thuc, ten_club: l.clubs?.ten_club || '' }));
   const today = dateStr;
 
   return (

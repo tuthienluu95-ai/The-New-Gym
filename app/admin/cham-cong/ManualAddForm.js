@@ -13,9 +13,18 @@ export default function ManualAddForm({ nvList, clubs, classes, defaultNgay }) {
   const [openList, setOpenList] = useState(false);
   const [ngay, setNgay] = useState(defaultNgay);
   const [lop, setLop] = useState('');
+  const [gioVao, setGioVao] = useState('');
+  const [gioRa, setGioRa] = useState('');
   const thu = thuOf(ngay);
   const matches = nvQ ? nvList.filter((n) => matchQ(`${n.ma_nv} ${n.ho_ten}`, nvQ)).slice(0, 8) : [];
   const opts = classes.filter((c) => c.nv_id === nvId && (!thu || c.thu === thu));
+
+  function chonLop(id) {
+    setLop(id);
+    const c = classes.find((x) => x.id === id);
+    if (c) { setGioVao(hhmm(c.gio_bat_dau)); setGioRa(hhmm(c.gio_ket_thuc)); }
+    else { setGioVao(''); setGioRa(''); } // Lớp khác → nhập tay
+  }
 
   return (
     <>
@@ -25,13 +34,13 @@ export default function ManualAddForm({ nvList, clubs, classes, defaultNgay }) {
       <form action={themChamCong} className="manual-grid">
         <div style={{ position: 'relative' }}><label>Nhân viên</label>
           <input value={nvQ} autoComplete="off" placeholder="Gõ tên hoặc mã..."
-            onChange={(e) => { setNvQ(e.target.value); setNvId(''); setLop(''); setOpenList(true); }}
+            onChange={(e) => { setNvQ(e.target.value); setNvId(''); setLop(''); setGioVao(''); setGioRa(''); setOpenList(true); }}
             onFocus={() => setOpenList(true)} onBlur={() => setTimeout(() => setOpenList(false), 150)} />
           <input type="hidden" name="nv_id" value={nvId} />
           {openList && matches.length > 0 && (
             <div className="combo-list">
               {matches.map((n) => (
-                <div key={n.id} className="combo-item" onMouseDown={() => { setNvId(n.id); setNvQ(`${n.ma_nv} · ${n.ho_ten}`); setLop(''); setOpenList(false); }}>
+                <div key={n.id} className="combo-item" onMouseDown={() => { setNvId(n.id); setNvQ(`${n.ma_nv} · ${n.ho_ten}`); setLop(''); setGioVao(''); setGioRa(''); setOpenList(false); }}>
                   {n.ma_nv} · {n.ho_ten}
                 </div>
               ))}
@@ -39,10 +48,10 @@ export default function ManualAddForm({ nvList, clubs, classes, defaultNgay }) {
           )}
         </div>
         <div><label>Ngày</label>
-          <input type="date" lang="en-GB" name="ngay" value={ngay} onChange={(e) => { setNgay(e.target.value); setLop(''); }} required />
+          <input type="date" lang="en-GB" name="ngay" value={ngay} onChange={(e) => { setNgay(e.target.value); setLop(''); setGioVao(''); setGioRa(''); }} required />
         </div>
         <div><label>Lớp</label>
-          <select name="lich_lop_id" value={lop} onChange={(e) => setLop(e.target.value)}>
+          <select name="lich_lop_id" value={lop} onChange={(e) => chonLop(e.target.value)}>
             <option value="">— Lớp khác —</option>
             {opts.map((c) => <option key={c.id} value={c.id}>{hhmm(c.gio_bat_dau)} · {c.ten_lop} · {c.ten_club}</option>)}
           </select>
@@ -50,8 +59,8 @@ export default function ManualAddForm({ nvList, clubs, classes, defaultNgay }) {
         <div><label>Club (nếu "Lớp khác")</label>
           <select name="club_id"><option value="">—</option>{clubs.map((c) => <option key={c.id} value={c.id}>{c.ten_club}</option>)}</select>
         </div>
-        <div><label>Giờ vào</label><input type="text" inputMode="numeric" pattern="([01][0-9]|2[0-3]):[0-5][0-9]" placeholder="HH:MM" maxLength="5" name="gio_vao" required /></div>
-        <div><label>Giờ ra</label><input type="text" inputMode="numeric" pattern="([01][0-9]|2[0-3]):[0-5][0-9]" placeholder="HH:MM" maxLength="5" name="gio_ra" /></div>
+        <div><label>Giờ vào</label><input type="text" inputMode="numeric" pattern="([01][0-9]|2[0-3]):[0-5][0-9]" placeholder="HH:MM" maxLength="5" name="gio_vao" value={gioVao} onChange={(e) => setGioVao(e.target.value)} required /></div>
+        <div><label>Giờ ra</label><input type="text" inputMode="numeric" pattern="([01][0-9]|2[0-3]):[0-5][0-9]" placeholder="HH:MM" maxLength="5" name="gio_ra" value={gioRa} onChange={(e) => setGioRa(e.target.value)} /></div>
         <div><label>Số học viên</label><input type="number" min="0" name="so_hoc_vien" placeholder="0 = 50% thù lao" /></div>
         <div><label>Ghi chú</label><input name="ghi_chu" placeholder="VD: mất điện, chấm bù" /></div>
         <button className="btn primary">Thêm</button>
