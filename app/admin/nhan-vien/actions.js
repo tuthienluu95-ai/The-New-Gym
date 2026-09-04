@@ -41,6 +41,7 @@ export async function themNV(formData) {
     sdt: sdtRaw || null,
     email: String(formData.get('email') || '').trim() || null,
     vai_tro: formData.get('vai_tro') || 'nhan_vien',
+    loai_gv: formData.get('loai_gv') || 'chinh_thuc',
     thu_lao: num(formData.get('thu_lao')),
   };
   if (pin) row.pin_hash = await bcrypt.hash(pin, 10);
@@ -65,6 +66,7 @@ export async function suaNV(formData) {
     sdt: String(formData.get('sdt') || '').trim() || null,
     email: String(formData.get('email') || '').trim() || null,
     vai_tro: formData.get('vai_tro') || 'nhan_vien',
+    loai_gv: formData.get('loai_gv') || 'chinh_thuc',
     trang_thai: formData.get('trang_thai') || 'dang_lam',
     thu_lao: num(formData.get('thu_lao')),
   }).eq('id', id);

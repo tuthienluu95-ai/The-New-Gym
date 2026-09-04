@@ -32,6 +32,9 @@ export default async function EditNV({ params }) {
           <div><label>Vai trò</label>
             <select name="vai_tro" defaultValue={n.vai_tro}><option value="nhan_vien">Nhân viên</option><option value="quan_ly">Quản lý</option></select>
           </div>
+          <div><label>Loại giáo viên</label>
+            <select name="loai_gv" defaultValue={n.loai_gv || 'chinh_thuc'}><option value="chinh_thuc">Chính thức</option><option value="tam_thoi">Tạm thời</option></select>
+          </div>
           <div><label>Trạng thái</label>
             <select name="trang_thai" defaultValue={n.trang_thai}><option value="dang_lam">Đang làm</option><option value="da_nghi">Đã nghỉ</option></select>
           </div>

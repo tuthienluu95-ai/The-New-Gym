@@ -11,7 +11,7 @@ export default async function NhanVienPage({ searchParams }) {
   const filterClub = searchParams?.club || '';
   const timkiem = searchParams?.q || '';
   const { data: clubs } = await sb.from('clubs').select('id, ma_club, ten_club').order('ma_club');
-  let q = sb.from('nhan_vien').select('id, ma_nv, ho_ten, sdt, thu_lao, pin_hash, vai_tro, trang_thai, club_chinh_id, clubs!club_chinh_id ( ten_club )').order('ma_nv');
+  let q = sb.from('nhan_vien').select('id, ma_nv, ho_ten, sdt, thu_lao, pin_hash, vai_tro, loai_gv, trang_thai, club_chinh_id, clubs!club_chinh_id ( ten_club )').order('ma_nv');
   if (filterClub) q = q.eq('club_chinh_id', filterClub);
   const { data: nv } = await q;
   const nvF = (nv || []).filter((n) => matchQ(`${n.ma_nv} ${n.ho_ten} ${n.sdt || ''} ${n.email || ''} ${n.clubs?.ten_club || ''}`, timkiem));
@@ -40,6 +40,9 @@ export default async function NhanVienPage({ searchParams }) {
           <div><label>Vai trò</label>
             <select name="vai_tro"><option value="nhan_vien">Nhân viên</option><option value="quan_ly">Quản lý</option></select>
           </div>
+          <div><label>Loại giáo viên</label>
+            <select name="loai_gv"><option value="chinh_thuc">Chính thức</option><option value="tam_thoi">Tạm thời</option></select>
+          </div>
           <div><label>PIN (tuỳ chọn)</label><input name="pin" placeholder="Để trống cho NV tự đặt" /></div>
           <div><label>Thù lao/ca (đ)</label><input name="thu_lao" placeholder="vd: 250000" /></div>
           <button className="btn primary">Thêm</button>
@@ -61,12 +64,13 @@ export default async function NhanVienPage({ searchParams }) {
           </form>
         </div>
         <table>
-          <thead><tr><th>Mã</th><th>Họ tên</th><th>Club</th><th>SĐT</th><th>Thù lao</th><th>PIN</th><th>Trạng thái</th><th></th></tr></thead>
+          <thead><tr><th>Mã</th><th>Họ tên</th><th>Loại</th><th>Club</th><th>SĐT</th><th>Thù lao</th><th>PIN</th><th>Trạng thái</th><th></th></tr></thead>
           <tbody>
             {nvF.map((n) => (
               <tr key={n.id}>
                 <td><b>{n.ma_nv}</b></td>
                 <td>{n.ho_ten}</td>
+                <td>{n.loai_gv === 'tam_thoi' ? <span className="tag warn">Tạm thời</span> : <span className="tag green">Chính thức</span>}</td>
                 <td className="muted">{n.clubs?.ten_club || '—'}</td>
                 <td className="muted">{n.sdt || '—'}</td>
                 <td className="muted">{(n.thu_lao || 0).toLocaleString('vi-VN')} đ</td>
