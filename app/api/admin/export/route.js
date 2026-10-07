@@ -59,9 +59,17 @@ export async function GET(req) {
   if (type === 'cham-cong') {
     const today = vnParts().dateStr;
     const tu = sp.get('tu'), den = sp.get('den'), ngayOne = sp.get('ngay');
-    let q2 = sb.from('cham_cong').select('ngay,gio_vao,gio_ra,trang_thai,ghi_chu,so_hoc_vien,nhan_vien!nv_id(ma_nv,ho_ten,loai_gv),clubs!club_id(ten_club),lich_lop!lich_lop_id(ten_lop,gio_bat_dau,gio_ket_thuc)').order('ngay', { ascending: true }).order('gio_vao');
-    if (tu && den) q2 = q2.gte('ngay', tu).lte('ngay', den); else q2 = q2.eq('ngay', ngayOne || today);
-    let { data } = await q2;
+    const sel = 'ngay,gio_vao,gio_ra,trang_thai,ghi_chu,so_hoc_vien,nhan_vien!nv_id(ma_nv,ho_ten,loai_gv),clubs!club_id(ten_club),lich_lop!lich_lop_id(ten_lop,gio_bat_dau,gio_ket_thuc)';
+    let data = [];
+    const PAGE = 1000;
+    for (let from = 0; ; from += PAGE) {
+      let q2 = sb.from('cham_cong').select(sel).order('ngay', { ascending: true }).order('gio_vao').range(from, from + PAGE - 1);
+      if (tu && den) q2 = q2.gte('ngay', tu).lte('ngay', den); else q2 = q2.eq('ngay', ngayOne || today);
+      const { data: page } = await q2;
+      if (!page || page.length === 0) break;
+      data = data.concat(page);
+      if (page.length < PAGE) break;
+    }
     data = (data || []).filter(r => matchQ(`${r.nhan_vien?.ma_nv||''} ${r.nhan_vien?.ho_ten||''} ${r.clubs?.ten_club||''} ${r.lich_lop?.ten_lop||''} ${r.ghi_chu||''}`, tk));
     const aoa = [['Ngày', 'Mã NV', 'Họ tên', 'Loại GV', 'Club', 'Lớp', 'Ca lớp', 'Số HV', 'Ghi chú', 'Vào', 'Ra', 'Trạng thái']];
     for (const r of data) {
