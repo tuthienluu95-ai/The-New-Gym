@@ -4,6 +4,7 @@ import { isAdminToken, ADMIN_COOKIE } from '../../../../lib/auth';
 import { supabaseAdmin } from '../../../../lib/supabase';
 import { vnParts, fmtTime, thuLabel } from '../../../../lib/time';
 import { matchQ } from '../../../../lib/search';
+import { buildChamCongExcel } from '../../../../lib/chamcong-excel';
 
 export const dynamic = 'force-dynamic';
 const hhmm = (t) => (t || '').slice(0, 5);
@@ -59,7 +60,7 @@ export async function GET(req) {
   if (type === 'cham-cong') {
     const today = vnParts().dateStr;
     const tu = sp.get('tu'), den = sp.get('den'), ngayOne = sp.get('ngay');
-    const sel = 'ngay,gio_vao,gio_ra,trang_thai,ghi_chu,so_hoc_vien,nhan_vien!nv_id(ma_nv,ho_ten,loai_gv),clubs!club_id(ten_club),lich_lop!lich_lop_id(ten_lop,gio_bat_dau,gio_ket_thuc)';
+    const sel = 'ngay,gio_vao,gio_ra,trang_thai,ghi_chu,so_hoc_vien,nhan_vien!nv_id(ma_nv,ho_ten,loai_gv,thu_lao),clubs!club_id(ten_club),lich_lop!lich_lop_id(ten_lop,gio_bat_dau,gio_ket_thuc)';
     let data = [];
     const PAGE = 1000;
     for (let from = 0; ; from += PAGE) {
@@ -71,14 +72,13 @@ export async function GET(req) {
       if (page.length < PAGE) break;
     }
     data = (data || []).filter(r => matchQ(`${r.nhan_vien?.ma_nv||''} ${r.nhan_vien?.ho_ten||''} ${r.clubs?.ten_club||''} ${r.lich_lop?.ten_lop||''} ${r.ghi_chu||''}`, tk));
-    const aoa = [['Ngày', 'Mã NV', 'Họ tên', 'Loại GV', 'Club', 'Lớp', 'Ca lớp', 'Số HV', 'Ghi chú', 'Vào', 'Ra', 'Trạng thái']];
-    for (const r of data) {
-      const quen = r.trang_thai === 'quen_ra' || (!r.gio_ra && r.ngay < today);
-      const ca = r.lich_lop ? `${hhmm(r.lich_lop.gio_bat_dau)}-${hhmm(r.lich_lop.gio_ket_thuc)}` : '';
-      aoa.push([r.ngay, r.nhan_vien?.ma_nv || '', r.nhan_vien?.ho_ten || '', r.nhan_vien?.loai_gv === 'tam_thoi' ? 'Tạm thời' : 'Chính thức', r.clubs?.ten_club || '', r.lich_lop?.ten_lop || 'Lớp khác', ca, (typeof r.so_hoc_vien === 'number' ? r.so_hoc_vien : ''), r.ghi_chu || '', fmtTime(r.gio_vao), r.gio_ra ? fmtTime(r.gio_ra) : '', quen ? 'Quên chấm ra' : (r.trang_thai === 'hoan_thanh' ? 'Hoàn thành' : 'Đang trong ca')]);
-    }
+    // map mã NV -> club chính (cho sheet Lương)
+    const { data: nvs } = await sb.from('nhan_vien').select('ma_nv, clubs!club_chinh_id ( ten_club )');
+    const nvClubChinh = {};
+    for (const n of nvs || []) nvClubChinh[n.ma_nv] = n.clubs?.ten_club || '';
+    const buf = await buildChamCongExcel({ rows: data, nvClubChinh, tu, den, today });
     const fn = (tu && den) ? `cham-cong-${tu}_den_${den}.xlsx` : `cham-cong-${ngayOne || today}.xlsx`;
-    return xlsx(aoa, 'Cham cong', fn);
+    return new Response(buf, { headers: { 'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'Content-Disposition': `attachment; filename="${fn}"` } });
   }
 
   if (type === 'tkb') {
