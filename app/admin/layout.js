@@ -45,8 +45,8 @@ export default async function AdminLayout({ children }) {
     <div className="app-shell">
       <aside className="sidebar">
         <div className="sb-brand">
-          <div className="sb-logo">NG</div>
-          <div><b>The New Gym</b><span>Admin Console</span></div>
+          <img className="sb-logo-img" src="/logo.png" alt="The New Gym" />
+          <span className="sb-sub">Admin Console</span>
         </div>
         {NAV.map((g) => (
           <div key={g.group}>
