@@ -13,7 +13,7 @@ const IconBell = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor
 export default function Topbar({ initialCount = 0 }) {
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState('');
-  const [res, setRes] = useState({ nhanVien: [], clubs: [] });
+  const [res, setRes] = useState({ nhanVien: [], clubs: [], lop: [] });
   const [notifOpen, setNotifOpen] = useState(false);
   const [notifs, setNotifs] = useState({ count: initialCount, items: null });
   const [adminOpen, setAdminOpen] = useState(false);
@@ -30,7 +30,7 @@ export default function Topbar({ initialCount = 0 }) {
   useEffect(() => { if (open) setTimeout(() => inpRef.current?.focus(), 30); }, [open]);
 
   useEffect(() => {
-    if (!q.trim()) { setRes({ nhanVien: [], clubs: [] }); return; }
+    if (!q.trim()) { setRes({ nhanVien: [], clubs: [], lop: [] }); return; }
     const id = setTimeout(async () => {
       try { const r = await fetch('/api/admin/search?q=' + encodeURIComponent(q)); if (r.ok) setRes(await r.json()); } catch {}
     }, 220);
@@ -45,7 +45,9 @@ export default function Topbar({ initialCount = 0 }) {
     }
   }, [notifOpen, notifs.items]);
 
-  const pageHits = q.trim() ? PAGES.filter((p) => p.t.toLowerCase().includes(q.toLowerCase())) : PAGES;
+  const term = q.trim().toLowerCase();
+  const pageHits = term ? PAGES.filter((p) => p.t.toLowerCase().includes(term)) : [];
+  const hasAny = res.nhanVien.length || res.clubs.length || res.lop.length || pageHits.length;
 
   return (
     <>
@@ -87,13 +89,16 @@ export default function Topbar({ initialCount = 0 }) {
           <div className="cmdk" onClick={(e) => e.stopPropagation()}>
             <div className="cmdk-inp"><IconSearch /><input ref={inpRef} value={q} onChange={(e) => setQ(e.target.value)} placeholder="Tìm nhân viên, club, hoặc chuyển trang…" /></div>
             <div className="cmdk-list">
+              {!term && <div className="cmdk-empty">Gõ tên nhân viên, club hoặc lớp để tìm…</div>}
               {res.nhanVien.length > 0 && <div className="cmdk-sec">Nhân viên</div>}
               {res.nhanVien.map((n) => <div className="cmdk-item" key={n.id} onClick={() => go(`/admin/nhan-vien/${n.id}`)}><b>{n.ma_nv}</b> · {n.ho_ten}<span className="mut">Nhân viên</span></div>)}
               {res.clubs.length > 0 && <div className="cmdk-sec">Club</div>}
               {res.clubs.map((c) => <div className="cmdk-item" key={c.id} onClick={() => go(`/admin/clubs/${c.id}`)}>{c.ten_club}<span className="mut">Club</span></div>)}
-              <div className="cmdk-sec">Trang</div>
+              {res.lop.length > 0 && <div className="cmdk-sec">Lớp</div>}
+              {res.lop.map((t) => <div className="cmdk-item" key={t} onClick={() => go('/admin/lich?q=' + encodeURIComponent(t))}>{t}<span className="mut">Xem lịch lớp</span></div>)}
+              {pageHits.length > 0 && <div className="cmdk-sec">Trang</div>}
               {pageHits.map((p) => <div className="cmdk-item" key={p.href} onClick={() => go(p.href)}>{p.t}<span className="mut">Mở trang</span></div>)}
-              {q.trim() && res.nhanVien.length === 0 && res.clubs.length === 0 && pageHits.length === 0 && <div className="cmdk-empty">Không tìm thấy “{q}”.</div>}
+              {term && !hasAny && <div className="cmdk-empty">Không tìm thấy “{q}”.</div>}
             </div>
           </div>
         </div>
