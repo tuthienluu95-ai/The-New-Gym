@@ -1,34 +1,73 @@
 import { headers } from 'next/headers';
 import { requireAdmin } from '../../lib/guard';
+import { supabaseAdmin } from '../../lib/supabase';
+import { vnParts } from '../../lib/time';
+import { Icon } from './_shell/icons';
+import Topbar from './_shell/Topbar';
 
 export const dynamic = 'force-dynamic';
 
-export default function AdminLayout({ children }) {
+const NAV = [
+  { group: 'Vận hành', items: [
+    { t: 'Bảng điều khiển', href: '/admin', icon: 'dashboard' },
+    { t: 'Chấm công', href: '/admin/cham-cong', icon: 'clock', badge: true },
+    { t: 'Lịch lớp', href: '/admin/lich', icon: 'calendar' },
+    { t: 'Thời khoá biểu', href: '/admin/tkb', icon: 'grid' },
+  ] },
+  { group: 'Danh mục', items: [
+    { t: 'Club', href: '/admin/clubs', icon: 'store' },
+    { t: 'Nhân viên', href: '/admin/nhan-vien', icon: 'users' },
+  ] },
+  { group: 'Hệ thống', items: [
+    { t: 'Báo cáo', href: '/admin/bao-cao', icon: 'chart' },
+    { t: 'Nhật ký', href: '/admin/nhat-ky', icon: 'log' },
+    { t: 'Sao lưu', href: '/api/admin/backup', icon: 'save' },
+  ] },
+];
+
+export default async function AdminLayout({ children }) {
   const path = headers().get('x-tng-path') || '';
-  if (path.startsWith('/admin/login')) {
-    return children;
-  }
+  if (path.startsWith('/admin/login')) return children;
   requireAdmin();
+
+  // badge "cần xử lý" = buổi hôm nay chưa chấm giờ ra
+  let canXuLy = 0;
+  try {
+    const sb = supabaseAdmin();
+    const { dateStr } = vnParts();
+    const { count } = await sb.from('cham_cong').select('id', { count: 'exact', head: true }).eq('ngay', dateStr).is('gio_ra', null);
+    canXuLy = count || 0;
+  } catch {}
+
+  const isActive = (href) => href === '/admin' ? path === '/admin' : path.startsWith(href);
+
   return (
-    <div>
-      <nav className="nav">
-        <div className="inner">
-          <img className="brand-logo" src="/logo.png" alt="THE NEW GYM" />
-          <a href="/admin">Bảng điều khiển</a>
-          <a href="/admin/clubs">Club</a>
-          <a href="/admin/nhan-vien">Nhân viên</a>
-          <a href="/admin/lich">Lịch lớp</a>
-          <a href="/admin/tkb">Thời khoá biểu</a>
-          <a href="/admin/cham-cong">Chấm công</a>
-          <a href="/admin/bao-cao">Báo cáo</a>
-          <a href="/admin/nhat-ky">Nhật ký</a>
-          <a href="/api/admin/backup">Sao lưu</a>
-          <form method="post" action="/api/admin/logout" className="spacer" style={{ margin: 0, marginLeft: 'auto' }}>
-            <button className="btn" style={{ height: 34 }}>Đăng xuất</button>
-          </form>
+    <div className="app-shell">
+      <aside className="sidebar">
+        <div className="sb-brand">
+          <div className="sb-logo">NG</div>
+          <div><b>The New Gym</b><span>Admin Console</span></div>
         </div>
-      </nav>
-      <main className="wrap">{children}</main>
+        {NAV.map((g) => (
+          <div key={g.group}>
+            <div className="sb-group">{g.group}</div>
+            {g.items.map((it) => (
+              <a key={it.href} href={it.href} className={'sb-link' + (isActive(it.href) ? ' active' : '')}>
+                <Icon name={it.icon} /><span>{it.t}</span>
+                {it.badge && canXuLy > 0 && <span className="sb-badge">{canXuLy}</span>}
+              </a>
+            ))}
+          </div>
+        ))}
+        <div className="sb-foot">Đồng bộ dữ liệu<br />Tự sao lưu mỗi ngày</div>
+      </aside>
+
+      <div className="main-col">
+        <header className="topbar">
+          <Topbar initialCount={canXuLy} />
+        </header>
+        <main className="wrap2">{children}</main>
+      </div>
     </div>
   );
 }
