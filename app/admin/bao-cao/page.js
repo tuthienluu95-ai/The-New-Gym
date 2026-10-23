@@ -70,6 +70,20 @@ export default async function BaoCaoPage({ searchParams }) {
       <ReportCharts data={rep} />
 
       <div className="card">
+        <h2>Lớp trống — giáo viên không đến ({rep.missed})</h2>
+        <p className="muted" style={{ marginTop: 0 }}>Các buổi có trong lịch nhưng không ai chấm công (tính các buổi đã qua giờ bắt đầu hơn 15 phút).</p>
+        <table>
+          <thead><tr><th>Ngày</th><th>Khung giờ</th><th>Club</th><th>Lớp</th><th>HLV phụ trách</th></tr></thead>
+          <tbody>
+            {rep.missedList.length === 0 && <tr><td colSpan="5" className="muted">Không có lớp trống trong kỳ. 🎉</td></tr>}
+            {rep.missedList.map((m, i) => (
+              <tr key={i}><td>{m.ngay}</td><td className="muted">{m.gio}</td><td className="muted">{m.club}</td><td>{m.lop}</td><td className="muted">{m.hlv}</td></tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="card">
         <h2>Bảng thù lao theo HLV</h2>
         <table>
           <thead><tr><th>HLV</th><th>Số buổi</th><th>Đi trễ</th><th>Lượt HV</th><th>Thù lao</th></tr></thead>
