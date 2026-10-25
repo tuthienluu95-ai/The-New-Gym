@@ -4,6 +4,13 @@ import { useEffect, useState } from 'react';
 // Nút chính trên đầu trang + khung trượt bên phải chứa form (form & server action giữ nguyên).
 export default function Drawer({ label, title, sub, defaultOpen = false, children }) {
   const [open, setOpen] = useState(defaultOpen);
+  const [sending, setSending] = useState(false);
+  // Gửi form xong thì đóng khung để thấy thông báo kết quả trên trang và tránh bấm "Thêm" hai lần.
+  // Việc lưu đã bắt đầu ngay lúc gửi nên đóng khung không làm mất dữ liệu đang lưu.
+  const onSubmit = () => {
+    setSending(true);
+    setTimeout(() => { setOpen(false); setSending(false); }, 400);
+  };
   useEffect(() => {
     if (!open) return;
     const onKey = (e) => { if (e.key === 'Escape') setOpen(false); };
@@ -24,7 +31,7 @@ export default function Drawer({ label, title, sub, defaultOpen = false, childre
               </div>
               <button type="button" className="icon-btn" aria-label="Đóng" onClick={() => setOpen(false)}>✕</button>
             </div>
-            <div className="drawer-body">{children}</div>
+            <div className={'drawer-body' + (sending ? ' sending' : '')} onSubmit={onSubmit}>{children}</div>
           </aside>
         </div>
       )}

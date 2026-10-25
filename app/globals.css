@@ -302,6 +302,7 @@ body{background-image:none}
 .drawer-body{flex:1;overflow:auto;padding:20px 22px}
 .drawer-body .form-grid,.drawer-body .manual-grid{grid-template-columns:1fr}
 .drawer-body .btn.primary{width:100%}
+.drawer-body.sending button{pointer-events:none;opacity:.6}
 .attn{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
 .attn a{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-radius:10px;font-weight:600;text-decoration:none}
 .attn a b{font-size:22px}
