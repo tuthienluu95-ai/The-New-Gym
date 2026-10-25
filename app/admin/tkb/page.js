@@ -16,13 +16,17 @@ function dateList(tu, den) {
   while (d <= end && g < 62) { out.push(d.toISOString().slice(0, 10)); d.setUTCDate(d.getUTCDate() + 1); g++; }
   return out;
 }
-function lopColor(name) {
+// loại lớp -> class màu thẻ (khớp chú thích màu trên đầu lưới)
+function lopKind(name) {
   const s = (name || '').toLowerCase();
-  if (s.includes('yoga')) return '#4C8C2B';
-  if (s.includes('zumba') || s.includes('dance') || s.includes('tiktok')) return 'var(--accent)';
-  if (s.includes('combat') || s.includes('pump')) return 'var(--orange)';
-  return 'var(--accent-dark)';
+  if (s.includes('yoga')) return 'k-yoga';
+  if (s.includes('pump')) return 'k-pump';
+  if (s.includes('zumba')) return 'k-zumba';
+  if (s.includes('combat')) return 'k-combat';
+  if (s.includes('dance') || s.includes('tiktok')) return 'k-dance';
+  return 'k-khac';
 }
+const KINDS = [['k-yoga', 'Yoga'], ['k-pump', 'Pump'], ['k-zumba', 'Zumba'], ['k-combat', 'Combat'], ['k-dance', 'Dance'], ['k-khac', 'Khác']];
 function badge(tt) {
   if (tt === 'hoan_thanh') return <span className="tag green">Đã hoàn thành</span>;
   if (tt === 'dang_lam') return <span className="tag" style={{ background: 'var(--accent-weak)', color: 'var(--accent-dark)' }}>Đang dạy</span>;
@@ -124,6 +128,9 @@ export default async function TkbPage({ searchParams }) {
         <div className="card">{filterBar}
           {chuaXep > 0 && <div className="err">Có {chuaXep} lớp chưa xếp HLV (được tô cảnh báo bên dưới).</div>}
         </div>
+        {clubGroups.length > 0 && (
+          <div className="tkb-legend">{KINDS.map(([k, t]) => <span key={k} className={k}><i />{t}</span>)}</div>
+        )}
         {clubGroups.length === 0 && <div className="card muted">Không có lớp phù hợp.</div>}
         {clubGroups.map((g) => (
           <div className="card tkb-club" key={g.ten_club}>
@@ -134,13 +141,14 @@ export default async function TkbPage({ searchParams }) {
                   <div className="tkb-day-head">{DLABEL[d]}</div>
                   {(g.days[d] || []).length === 0 && <div className="tkb-empty">—</div>}
                   {(g.days[d] || []).map((c) => (
-                    <div className={'tkb-cell' + (c.nhan_vien ? '' : ' warn')} key={c.id} style={{ borderLeftColor: lopColor(c.ten_lop) }}>
+                    <div className={'tkb-cell ' + lopKind(c.ten_lop) + (c.nhan_vien ? '' : ' warn')} key={c.id}>
                       <a className="tkb-edit" href={`/admin/lich/${c.id}`} title="Sửa lớp / đổi HLV" aria-label="Sửa">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg>
                       </a>
-                      <div className="lop" style={{ color: lopColor(c.ten_lop) }}>{c.ten_lop}</div>
                       <div className="gio">{hhmm(c.gio_bat_dau)} – {hhmm(c.gio_ket_thuc)}</div>
-                      <div className="hlv">{c.nhan_vien ? `${c.nhan_vien.ho_ten}${c.nhan_vien.sdt ? ' · ' + c.nhan_vien.sdt : ''}` : '⚠ Chưa xếp HLV'}</div>
+                      <div className="lop">{c.ten_lop}</div>
+                      <div className="hlv">{c.nhan_vien ? c.nhan_vien.ho_ten : '⚠ Chưa xếp HLV'}</div>
+                      {c.nhan_vien?.sdt && <div className="sdt">{c.nhan_vien.sdt}</div>}
                     </div>
                   ))}
                 </div>

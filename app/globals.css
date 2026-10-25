@@ -268,6 +268,30 @@ body{background-image:none}
 .sb-link.active{background:var(--accent-dark);color:#fff}
 .sb-foot{color:#8494B3;border-top-color:rgba(255,255,255,.08)}
 
+/* ---- Thời khoá biểu kiểu lịch tuần như bản demo ---- */
+.tkb-grid{gap:0;border:1px solid var(--border);border-radius:12px;overflow:auto}
+.tkb-col{gap:6px;padding:0 6px 8px;border-left:1px solid #EEF2F8}
+.tkb-col:first-child{border-left:none}
+.tkb-day-head{background:#F5F8FC;color:var(--ink);border-radius:0;margin:0 -6px 2px;padding:10px 8px;font-size:13px;border-bottom:1px solid var(--border)}
+.tkb-cell{border:none;border-radius:8px;padding:8px 28px 8px 10px;background:#F5F8FC}
+.tkb-cell .gio{margin:0;font-weight:600;color:#3B4660}
+.tkb-cell .lop{font-size:13.5px;margin-top:2px}
+.tkb-cell .hlv{color:#3B4660}
+.tkb-cell .sdt{font-size:11.5px;color:var(--muted)}
+.tkb-edit{background:transparent}
+.k-yoga{--k-bg:#E8F0FE;--k-fg:#1F4E99}
+.k-pump{--k-bg:#FFF4E5;--k-fg:#8A4B00}
+.k-zumba{--k-bg:#E7F6EE;--k-fg:#1E6B45}
+.k-combat{--k-bg:#FCE8EE;--k-fg:#9B2C4C}
+.k-dance{--k-bg:#F1EBFB;--k-fg:#5B3BA8}
+.k-khac{--k-bg:#EEF2F6;--k-fg:#3B4660}
+.tkb-cell[class*="k-"]{background:var(--k-bg)}
+.tkb-cell[class*="k-"] .lop{color:var(--k-fg)}
+.tkb-cell.warn{background:var(--warn-weak);outline:1px dashed var(--warn)}
+.tkb-legend{display:flex;flex-wrap:wrap;gap:14px;font-size:13px;color:var(--muted)}
+.tkb-legend span{display:inline-flex;align-items:center;gap:6px}
+.tkb-legend i{width:12px;height:12px;border-radius:3px;background:var(--k-bg);border:1px solid var(--k-fg)}
+
 /* ---- Giao diện mới: đầu trang, khung trượt, mục cần xử lý, tìm kiếm ---- */
 .page-head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
 .page-head h1{margin:0}
