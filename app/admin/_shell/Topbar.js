@@ -5,7 +5,7 @@ const PAGES = [
   { t: 'Bảng điều khiển', href: '/admin' }, { t: 'Chấm công', href: '/admin/cham-cong' },
   { t: 'Lịch lớp', href: '/admin/lich' }, { t: 'Thời khoá biểu', href: '/admin/tkb' },
   { t: 'Club', href: '/admin/clubs' }, { t: 'Nhân viên', href: '/admin/nhan-vien' },
-  { t: 'Báo cáo', href: '/admin/bao-cao' }, { t: 'Nhật ký', href: '/admin/nhat-ky' },
+  { t: 'Nhật ký', href: '/admin/nhat-ky' },
 ];
 const IconSearch = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M21 21l-4.3-4.3" /><circle cx="11" cy="11" r="8" /></svg>;
 const IconBell = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 01-3.4 0" /></svg>;
@@ -21,13 +21,12 @@ export default function Topbar({ initialCount = 0 }) {
 
   useEffect(() => {
     const onKey = (e) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); setOpen((v) => !v); }
-      if (e.key === 'Escape') { setOpen(false); setNotifOpen(false); setAdminOpen(false); }
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); inpRef.current?.focus(); }
+      if (e.key === 'Escape') { setOpen(false); setNotifOpen(false); setAdminOpen(false); inpRef.current?.blur(); }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, []);
-  useEffect(() => { if (open) setTimeout(() => inpRef.current?.focus(), 30); }, [open]);
 
   useEffect(() => {
     if (!q.trim()) { setRes({ nhanVien: [], clubs: [], lop: [] }); return; }
@@ -51,8 +50,28 @@ export default function Topbar({ initialCount = 0 }) {
 
   return (
     <>
-      <div className="search-pill" onClick={() => setOpen(true)}>
-        <IconSearch /> <span>Tìm nhân viên, lớp, club…</span><span className="kbd">⌘K</span>
+      {/* Ô tìm kiếm gõ trực tiếp, kết quả xổ ngay bên dưới (không mở thêm khung tìm kiếm thứ hai) */}
+      <div className="search-box">
+        <label className="search-pill">
+          <IconSearch />
+          <input ref={inpRef} value={q} autoComplete="off" aria-label="Tìm kiếm" placeholder="Tìm nhân viên, lớp, club…"
+            onChange={(e) => { setQ(e.target.value); setOpen(true); }}
+            onFocus={() => setOpen(true)} onBlur={() => setTimeout(() => setOpen(false), 150)} />
+          <span className="kbd">Ctrl K</span>
+        </label>
+        {open && term && (
+          <div className="search-drop">
+            {res.nhanVien.length > 0 && <div className="cmdk-sec">Nhân viên</div>}
+            {res.nhanVien.map((n) => <div className="cmdk-item" key={n.id} onMouseDown={() => go(`/admin/nhan-vien/${n.id}`)}><b>{n.ma_nv}</b> · {n.ho_ten}<span className="mut">Nhân viên</span></div>)}
+            {res.clubs.length > 0 && <div className="cmdk-sec">Club</div>}
+            {res.clubs.map((c) => <div className="cmdk-item" key={c.id} onMouseDown={() => go(`/admin/clubs/${c.id}`)}>{c.ten_club}<span className="mut">Club</span></div>)}
+            {res.lop.length > 0 && <div className="cmdk-sec">Lớp</div>}
+            {res.lop.map((t) => <div className="cmdk-item" key={t} onMouseDown={() => go('/admin/lich?q=' + encodeURIComponent(t))}>{t}<span className="mut">Xem lịch lớp</span></div>)}
+            {pageHits.length > 0 && <div className="cmdk-sec">Trang</div>}
+            {pageHits.map((p) => <div className="cmdk-item" key={p.href} onMouseDown={() => go(p.href)}>{p.t}<span className="mut">Mở trang</span></div>)}
+            {!hasAny && <div className="cmdk-empty">Không tìm thấy “{q}”.</div>}
+          </div>
+        )}
       </div>
       <div className="top-right">
         <button className="icon-btn" onClick={toggleNotif} aria-label="Thông báo">
@@ -83,26 +102,6 @@ export default function Topbar({ initialCount = 0 }) {
           )}
         </div>
       </div>
-
-      {open && (
-        <div className="cmdk-ov" onClick={() => setOpen(false)}>
-          <div className="cmdk" onClick={(e) => e.stopPropagation()}>
-            <div className="cmdk-inp"><IconSearch /><input ref={inpRef} value={q} onChange={(e) => setQ(e.target.value)} placeholder="Tìm nhân viên, club, hoặc chuyển trang…" /></div>
-            <div className="cmdk-list">
-              {!term && <div className="cmdk-empty">Gõ tên nhân viên, club hoặc lớp để tìm…</div>}
-              {res.nhanVien.length > 0 && <div className="cmdk-sec">Nhân viên</div>}
-              {res.nhanVien.map((n) => <div className="cmdk-item" key={n.id} onClick={() => go(`/admin/nhan-vien/${n.id}`)}><b>{n.ma_nv}</b> · {n.ho_ten}<span className="mut">Nhân viên</span></div>)}
-              {res.clubs.length > 0 && <div className="cmdk-sec">Club</div>}
-              {res.clubs.map((c) => <div className="cmdk-item" key={c.id} onClick={() => go(`/admin/clubs/${c.id}`)}>{c.ten_club}<span className="mut">Club</span></div>)}
-              {res.lop.length > 0 && <div className="cmdk-sec">Lớp</div>}
-              {res.lop.map((t) => <div className="cmdk-item" key={t} onClick={() => go('/admin/lich?q=' + encodeURIComponent(t))}>{t}<span className="mut">Xem lịch lớp</span></div>)}
-              {pageHits.length > 0 && <div className="cmdk-sec">Trang</div>}
-              {pageHits.map((p) => <div className="cmdk-item" key={p.href} onClick={() => go(p.href)}>{p.t}<span className="mut">Mở trang</span></div>)}
-              {term && !hasAny && <div className="cmdk-empty">Không tìm thấy “{q}”.</div>}
-            </div>
-          </div>
-        </div>
-      )}
     </>
   );
 }

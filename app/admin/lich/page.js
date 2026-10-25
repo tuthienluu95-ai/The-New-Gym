@@ -3,6 +3,7 @@ import { supabaseAdmin } from '../../../lib/supabase';
 import { requireAdmin } from '../../../lib/guard';
 import { thuLabel } from '../../../lib/time';
 import { themLich, xoaLich, khoaLich } from './actions';
+import Drawer from '../_shell/Drawer';
 
 export const dynamic = 'force-dynamic';
 const THU = [2, 3, 4, 5, 6, 7, 8];
@@ -35,10 +36,11 @@ export default async function LichPage({ searchParams }) {
 
   return (
     <div className="stack">
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}><h1>Lịch lớp ({lichF.length})</h1><a className="btn" href={`/api/admin/export?type=lich&club=${fClub}&lop=${encodeURIComponent(fLop)}&hlv=${fHlv}&an=${anKhoa ? "1" : ""}&q=${encodeURIComponent(timkiem)}`}>Xuất Excel</a></div>
-
-      <div className="card">
-        <h2>Thêm buổi lớp</h2>
+      <div className="page-head">
+        <h1>Lịch lớp ({lichF.length})</h1>
+        <div className="actions">
+          <a className="btn" href={`/api/admin/export?type=lich&club=${fClub}&lop=${encodeURIComponent(fLop)}&hlv=${fHlv}&an=${anKhoa ? "1" : ""}&q=${encodeURIComponent(timkiem)}`}>Xuất Excel</a>
+          <Drawer label="+ Sắp lịch" title="Thêm buổi lớp">
         <form action={themLich} className="form-grid">
           <div><label>Club</label>
             <select name="club_id" required><option value="">— chọn —</option>
@@ -56,6 +58,8 @@ export default async function LichPage({ searchParams }) {
           </div>
           <button className="btn primary">Thêm</button>
         </form>
+          </Drawer>
+        </div>
       </div>
 
       <div className="card">

@@ -251,3 +251,28 @@ tr:last-child td{border-bottom:none}
   .hamb{display:grid !important}
 }
 .hamb{display:none}
+
+/* ---- Giao diện mới: đầu trang, khung trượt, mục cần xử lý, tìm kiếm ---- */
+.page-head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.page-head h1{margin:0}
+.page-head .actions{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end}
+.drawer-ov{position:fixed;inset:0;background:rgba(12,22,32,.45);z-index:90;display:flex;justify-content:flex-end}
+.drawer{width:min(480px,100%);height:100%;background:#fff;display:flex;flex-direction:column;box-shadow:-12px 0 32px rgba(0,0,0,.18)}
+.drawer-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:18px 22px;border-bottom:1px solid var(--border)}
+.drawer-body{flex:1;overflow:auto;padding:20px 22px}
+.drawer-body .form-grid,.drawer-body .manual-grid{grid-template-columns:1fr}
+.drawer-body .btn.primary{width:100%}
+.attn{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.attn a{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-radius:10px;font-weight:600;text-decoration:none}
+.attn a b{font-size:22px}
+.attn .red{background:#FCEBEB;color:#9B1C1C}
+.attn .amber{background:var(--warn-weak);color:#7A4F0F}
+.attn .blue{background:var(--accent-weak);color:var(--accent-dark)}
+.tabs{flex-wrap:wrap}
+.club-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+.club-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.club-card h3{margin:0;font-size:16px}
+.search-box{flex:1;max-width:440px;position:relative}
+.search-box .search-pill{max-width:none;cursor:text}
+.search-box input{border:none;background:transparent;height:38px;padding:0;flex:1;font-size:14px;box-shadow:none;outline:none;min-width:0}
+.search-drop{position:absolute;left:0;right:0;top:46px;background:#fff;border:1px solid var(--border);border-radius:12px;box-shadow:0 16px 40px rgba(0,0,0,.14);z-index:60;max-height:60vh;overflow:auto;padding:6px 0}

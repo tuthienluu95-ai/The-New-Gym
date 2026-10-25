@@ -19,8 +19,27 @@ function Card({ title, sub, children }) {
   );
 }
 
+// Biểu đồ thù lao dùng riêng ở trang Chấm công
+export function TopPayChart({ topHlv }) {
+  return (
+    <Card title="Top 10 HLV theo thù lao" sub="Đơn vị: đồng">
+      <ResponsiveContainer width="100%" height={320}>
+        <BarChart data={topHlv} layout="vertical" margin={{ top: 6, right: 40, left: 10, bottom: 0 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="#eef0f3" />
+          <XAxis type="number" tick={{ fontSize: 10 }} tickFormatter={vnd} />
+          <YAxis type="category" dataKey="ten" width={120} tick={{ fontSize: 11 }} />
+          <Tooltip formatter={(v) => vnd(v) + '₫'} />
+          <Bar dataKey="tien" name="Thù lao" fill="#F5A623" radius={[0, 4, 4, 0]}>
+            <LabelList dataKey="tien" position="right" formatter={vnd} style={{ fontSize: 10, fill: '#6b7280' }} />
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
+    </Card>
+  );
+}
+
 export default function ReportCharts({ data }) {
-  const { daily, byClub, byType, byStatus, byHour, hvByClub, topHlv } = data;
+  const { daily, byClub, byType, byStatus, byHour, hvByClub } = data;
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(340px,1fr))', gap: 16 }}>
       <Card title="Xu hướng buổi dạy theo ngày">
@@ -66,20 +85,6 @@ export default function ReportCharts({ data }) {
             </Pie>
             <Tooltip /><Legend wrapperStyle={{ fontSize: 12 }} />
           </PieChart>
-        </ResponsiveContainer>
-      </Card>
-
-      <Card title="Top 10 HLV theo thù lao" sub="Đơn vị: đồng">
-        <ResponsiveContainer width="100%" height={320}>
-          <BarChart data={topHlv} layout="vertical" margin={{ top: 6, right: 40, left: 10, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#eef0f3" />
-            <XAxis type="number" tick={{ fontSize: 10 }} tickFormatter={vnd} />
-            <YAxis type="category" dataKey="ten" width={120} tick={{ fontSize: 11 }} />
-            <Tooltip formatter={(v) => vnd(v) + '₫'} />
-            <Bar dataKey="tien" name="Thù lao" fill="#F5A623" radius={[0, 4, 4, 0]}>
-              <LabelList dataKey="tien" position="right" formatter={vnd} style={{ fontSize: 10, fill: '#6b7280' }} />
-            </Bar>
-          </BarChart>
         </ResponsiveContainer>
       </Card>
 

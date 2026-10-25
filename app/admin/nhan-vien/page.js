@@ -2,6 +2,7 @@ import { matchQ } from '../../../lib/search';
 import { supabaseAdmin } from '../../../lib/supabase';
 import { requireAdmin } from '../../../lib/guard';
 import { themNV, xoaNV } from './actions';
+import Drawer from '../_shell/Drawer';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,15 +19,11 @@ export default async function NhanVienPage({ searchParams }) {
 
   return (
     <div className="stack">
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}><h1>Nhân viên ({nvF.length})</h1><a className="btn" href={`/api/admin/export?type=nhan-vien&club=${filterClub}&q=${encodeURIComponent(timkiem)}`}>Xuất Excel</a></div>
-      {searchParams?.loi === 'ma' && <div className="err">Không thêm được: mã nhân viên "{searchParams.info}" đã tồn tại.</div>}
-      {searchParams?.loi === 'sdt' && <div className="err">Không thêm được: số điện thoại đã tồn tại — {searchParams.info ? decodeURIComponent(searchParams.info) : ''}.</div>}
-      {searchParams?.loi === 'khac' && <div className="err">Không thêm được, vui lòng thử lại.</div>}
-      {searchParams?.canhbao === 'ten' && <div className="err" style={{ background: 'var(--warn-weak)', color: 'var(--warn)', borderColor: '#EAD9AE' }}>Đã thêm nhân viên. Lưu ý: đã có người trùng tên ({searchParams.info ? decodeURIComponent(searchParams.info) : ''}) — kiểm tra lại nếu là cùng một người.</div>}
-      {searchParams?.them === 'ok' && <div className="ok">Đã thêm nhân viên.</div>}
-
-      <div className="card">
-        <h2>Thêm nhân viên</h2>
+      <div className="page-head">
+        <h1>Nhân viên ({nvF.length})</h1>
+        <div className="actions">
+          <a className="btn" href={`/api/admin/export?type=nhan-vien&club=${filterClub}&q=${encodeURIComponent(timkiem)}`}>Xuất Excel</a>
+          <Drawer label="+ Thêm nhân viên" title="Thêm nhân viên" defaultOpen={!!searchParams?.loi}>
         <form action={themNV} className="form-grid">
           <div><label>Mã NV</label><input name="ma_nv" required placeholder="VD: 65" /></div>
           <div><label>Họ và tên</label><input name="ho_ten" required /></div>
@@ -47,7 +44,14 @@ export default async function NhanVienPage({ searchParams }) {
           <div><label>Thù lao/ca (đ)</label><input name="thu_lao" placeholder="vd: 250000" /></div>
           <button className="btn primary">Thêm</button>
         </form>
+          </Drawer>
+        </div>
       </div>
+      {searchParams?.loi === 'ma' && <div className="err">Không thêm được: mã nhân viên "{searchParams.info}" đã tồn tại.</div>}
+      {searchParams?.loi === 'sdt' && <div className="err">Không thêm được: số điện thoại đã tồn tại — {searchParams.info ? decodeURIComponent(searchParams.info) : ''}.</div>}
+      {searchParams?.loi === 'khac' && <div className="err">Không thêm được, vui lòng thử lại.</div>}
+      {searchParams?.canhbao === 'ten' && <div className="err" style={{ background: 'var(--warn-weak)', color: 'var(--warn)', borderColor: '#EAD9AE' }}>Đã thêm nhân viên. Lưu ý: đã có người trùng tên ({searchParams.info ? decodeURIComponent(searchParams.info) : ''}) — kiểm tra lại nếu là cùng một người.</div>}
+      {searchParams?.them === 'ok' && <div className="ok">Đã thêm nhân viên.</div>}
 
       <div className="card">
         <div className="toolbar">

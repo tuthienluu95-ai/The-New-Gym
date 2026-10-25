@@ -2,8 +2,13 @@ import { matchQ } from '../../../lib/search';
 import { supabaseAdmin } from '../../../lib/supabase';
 import { requireAdmin } from '../../../lib/guard';
 import { vnParts, vnNowMinutes, fmtTime, vnMinutesOf, hmToMin } from '../../../lib/time';
+import { buildReport } from '../../../lib/report';
 import { xoaChamCong } from './actions';
 import ManualAddForm from './ManualAddForm';
+import Drawer from '../_shell/Drawer';
+import { TopPayChart } from '../ReportCharts';
+
+const REPORT_VIEWS = ['cong', 'tresom', 'ithv', 'trong'];
 
 export const dynamic = 'force-dynamic';
 const hhmm = (t) => (t || '').slice(0, 5);
@@ -14,20 +19,35 @@ export default async function ChamCongPage({ searchParams }) {
   requireAdmin();
   const sb = supabaseAdmin();
   const { dateStr, thu } = vnParts();
-  const tu = searchParams?.tu || dateStr;
-  const den = searchParams?.den || tu;
+  const view = searchParams?.view || 'list'; // tab
+  const isReport = REPORT_VIEWS.includes(view);
+  // các tab tổng hợp mặc định xem cả tháng, tab danh sách mặc định xem hôm nay
+  const tu = searchParams?.tu || (isReport ? dateStr.slice(0, 7) + '-01' : dateStr);
+  const den = searchParams?.den || (isReport ? dateStr : tu);
   const timkiem = searchParams?.q || '';
   const tt = searchParams?.tt || 'all';     // bộ lọc trạng thái
-  const view = searchParams?.view || 'list'; // tab
 
-  const [{ data: rows }, { data: nvList }, { data: clubs }, { data: lopAll }, { data: todayRows }] = await Promise.all([
-    sb.from('cham_cong')
-      .select('id, ngay, gio_vao, gio_ra, trang_thai, ghi_chu, so_hoc_vien, thu_cong, nhan_vien!nv_id ( ma_nv, ho_ten ), clubs!club_id ( ten_club ), lich_lop!lich_lop_id ( ten_lop, gio_bat_dau, gio_ket_thuc )')
-      .gte('ngay', tu).lte('ngay', den).order('ngay', { ascending: false }).order('gio_vao', { ascending: true }),
+  // đọc theo trang 1000 dòng để khoảng ngày dài không bị thiếu lượt
+  const loadRows = async () => {
+    let all = [];
+    for (let from = 0; ; from += 1000) {
+      const { data } = await sb.from('cham_cong')
+        .select('id, ngay, gio_vao, gio_ra, trang_thai, ghi_chu, so_hoc_vien, thu_cong, nhan_vien!nv_id ( ma_nv, ho_ten ), clubs!club_id ( ten_club ), lich_lop!lich_lop_id ( ten_lop, gio_bat_dau, gio_ket_thuc )')
+        .gte('ngay', tu).lte('ngay', den).order('ngay', { ascending: false }).order('gio_vao', { ascending: true }).order('id').range(from, from + 999);
+      if (!data || data.length === 0) break;
+      all = all.concat(data);
+      if (data.length < 1000) break;
+    }
+    return { data: all };
+  };
+
+  const [{ data: rows }, { data: nvList }, { data: clubs }, { data: lopAll }, { data: todayRows }, rep] = await Promise.all([
+    loadRows(),
     sb.from('nhan_vien').select('id, ma_nv, ho_ten').eq('trang_thai', 'dang_lam').order('ma_nv'),
     sb.from('clubs').select('id, ten_club').order('ma_club'),
     sb.from('lich_lop').select('id, nv_id, club_id, ten_lop, thu, gio_bat_dau, gio_ket_thuc, clubs!club_id ( ten_club )').eq('dang_ap_dung', true).order('thu').order('gio_bat_dau'),
     sb.from('cham_cong').select('id, lich_lop_id, gio_vao, gio_ra, nhan_vien!nv_id ( ho_ten ), lich_lop!lich_lop_id ( ten_lop )').eq('ngay', dateStr),
+    isReport ? buildReport(sb, tu, den) : null,
   ]);
   const today = dateStr;
   const classes = (lopAll || []).map((l) => ({ id: l.id, nv_id: l.nv_id, club_id: l.club_id, ten_lop: l.ten_lop, thu: l.thu, gio_bat_dau: l.gio_bat_dau, gio_ket_thuc: l.gio_ket_thuc, ten_club: l.clubs?.ten_club || '' }));
@@ -71,7 +91,22 @@ export default async function ChamCongPage({ searchParams }) {
     { k: 'all', t: 'Tất cả', n: kLuot }, { k: 'du', t: 'Đủ công', n: kDu },
     { k: 'thieu', t: 'Thiếu giờ ra', n: kThieu }, { k: 'thucong', t: 'Thủ công', n: kThuCong },
   ];
-  const tabs = [{ k: 'list', t: 'Danh sách' }, { k: 'lop', t: 'Theo lớp' }, { k: 'nv', t: 'Theo nhân viên' }];
+  const tabs = [
+    { k: 'list', t: 'Danh sách' }, { k: 'cong', t: 'Bảng công & thù lao' }, { k: 'tresom', t: 'Vào trễ – Ra sớm' },
+    { k: 'ithv', t: 'Lớp ít học viên' }, { k: 'trong', t: 'Lớp trống' }, { k: 'lop', t: 'Theo lớp' }, { k: 'nv', t: 'Theo nhân viên' },
+  ];
+
+  // từng ca vào trễ / ra sớm (so với giờ lớp trong lịch)
+  const treSom = [];
+  if (view === 'tresom') {
+    for (const r of rowsF) {
+      const bd = r.lich_lop?.gio_bat_dau, kt = r.lich_lop?.gio_ket_thuc;
+      const tre = (bd && r.gio_vao) ? vnMinutesOf(r.gio_vao) - hmToMin(bd) : 0;
+      const som = (kt && r.gio_ra) ? hmToMin(kt) - vnMinutesOf(r.gio_ra) : 0;
+      if (tre > 0) treSom.push({ r, loai: 'tre', phut: tre });
+      if (som > 0) treSom.push({ r, loai: 'som', phut: som });
+    }
+  }
 
   // nhóm cho tab lop / nv
   const groupBy = (keyFn, labelFn) => {
@@ -82,9 +117,15 @@ export default async function ChamCongPage({ searchParams }) {
 
   return (
     <div className="stack">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+      <div className="page-head">
         <h1>Chấm công</h1>
-        <a className="btn primary" href={`/api/admin/export?type=cham-cong&tu=${tu}&den=${den}&q=${encodeURIComponent(timkiem)}`}>Xuất Excel</a>
+        <div className="actions">
+          <a className="btn" href={view === 'cong' ? `/api/admin/report-export?tu=${tu}&den=${den}` : `/api/admin/export?type=cham-cong&tu=${tu}&den=${den}&q=${encodeURIComponent(timkiem)}`}>Xuất Excel</a>
+          <Drawer label="+ Chấm công thủ công" title="Chấm công thủ công" defaultOpen={!!searchParams?.loi}
+            sub={'Dùng khi mất điện/wifi khiến giáo viên không tự chấm được. Gõ tên để chọn nhân viên; chọn lớp trong lịch để gắn đúng buổi (bỏ trống = "Lớp khác").'}>
+            <ManualAddForm nvList={nvList || []} clubs={clubs || []} classes={classes} defaultNgay={today} />
+          </Drawer>
+        </div>
       </div>
 
       {searchParams?.them === 'ok' && <div className="ok">Đã thêm chấm công thủ công.</div>}
@@ -114,7 +155,92 @@ export default async function ChamCongPage({ searchParams }) {
 
           <div className="card">
             <div className="tabs">{tabs.map((x) => <a key={x.k} href={qs({ view: x.k })} className={'tab' + (view === x.k ? ' active' : '')}>{x.t}</a>)}</div>
-            <div className="chips">{chips.map((c) => <a key={c.k} href={qs({ tt: c.k })} className={'chip' + (tt === c.k ? ' active' : '')}>{c.t} <span className="n">{c.n}</span></a>)}</div>
+            {!isReport && <div className="chips">{chips.map((c) => <a key={c.k} href={qs({ tt: c.k })} className={'chip' + (tt === c.k ? ' active' : '')}>{c.t} <span className="n">{c.n}</span></a>)}</div>}
+
+            {view === 'cong' && rep && (
+              <div className="stack">
+                <div className="kpi-grid">
+                  <div className="kpi"><div className="kpi-v">{vnd(rep.totals.tong_tien)} đ</div><div className="kpi-l">Tổng thù lao</div></div>
+                  <div className="kpi"><div className="kpi-v">{vnd(rep.totals.so_ca)}</div><div className="kpi-l">Tổng số ca</div></div>
+                  <div className="kpi"><div className="kpi-v">{vnd(rep.totals.so_gv)}</div><div className="kpi-l">Giáo viên có công</div></div>
+                </div>
+                <TopPayChart topHlv={rep.topHlv} />
+                <table>
+                  <thead><tr><th>Mã</th><th>Giáo viên</th><th>Số ca</th><th>Vào trễ</th><th>Ra sớm</th><th>Lượt HV</th><th>Thù lao/ca</th><th>Tổng tiền</th></tr></thead>
+                  <tbody>
+                    {rep.list.length === 0 && <tr><td colSpan="8" className="muted">Chưa có dữ liệu chấm công trong khoảng ngày này.</td></tr>}
+                    {rep.list.map((r) => (
+                      <tr key={r.ma_nv + r.ho_ten}>
+                        <td><b>{r.ma_nv}</b></td>
+                        <td><a href={qs({ view: 'list', tt: 'all', q: r.ho_ten })} title="Xem chi tiết từng ca">{r.ho_ten}</a></td>
+                        <td>{r.so_ca}</td>
+                        <td>{r.so_tre > 0 ? <span className="tag warn">{r.so_tre}</span> : <span className="muted">0</span>}</td>
+                        <td>{r.so_som > 0 ? <span className="tag warn">{r.so_som}</span> : <span className="muted">0</span>}</td>
+                        <td className="muted">{r.tong_hv}</td>
+                        <td className="muted">{vnd(r.thu_lao)} đ</td>
+                        <td><b>{vnd(r.tong_tien)} đ</b></td>
+                      </tr>
+                    ))}
+                    {rep.list.length > 0 && (
+                      <tr><td colSpan="2"><b>TỔNG</b></td><td><b>{rep.totals.so_ca}</b></td><td><b>{rep.totals.so_tre}</b></td><td><b>{rep.totals.so_som}</b></td><td><b>{rep.totals.tong_hv}</b></td><td></td><td><b>{vnd(rep.totals.tong_tien)} đ</b></td></tr>
+                    )}
+                  </tbody>
+                </table>
+                <p className="muted" style={{ margin: 0 }}>Bấm vào tên giáo viên để xem chi tiết từng ca.</p>
+              </div>
+            )}
+
+            {view === 'tresom' && (
+              <table>
+                <thead><tr><th>Loại</th><th>Ngày</th><th>Nhân viên</th><th>Club</th><th>Lớp</th><th>Ca lớp</th><th>Vào</th><th>Ra</th><th>Lệch</th></tr></thead>
+                <tbody>
+                  {treSom.length === 0 && <tr><td colSpan="9" className="muted">Không có ca vào trễ hoặc ra sớm trong khoảng ngày này.</td></tr>}
+                  {treSom.map(({ r, loai, phut }) => (
+                    <tr key={r.id + loai}>
+                      <td>{loai === 'tre' ? <span className="badge warn">Vào trễ</span> : <span className="badge gray">Ra sớm</span>}</td>
+                      <td>{r.ngay}</td>
+                      <td><b>{r.nhan_vien?.ho_ten}</b><br /><span className="muted">{r.nhan_vien?.ma_nv}</span></td>
+                      <td className="muted">{r.clubs?.ten_club}</td>
+                      <td>{r.lich_lop?.ten_lop}</td>
+                      <td className="muted">{hhmm(r.lich_lop?.gio_bat_dau)}–{hhmm(r.lich_lop?.gio_ket_thuc)}</td>
+                      <td>{fmtTime(r.gio_vao)}</td>
+                      <td>{r.gio_ra ? fmtTime(r.gio_ra) : <span className="muted">—</span>}</td>
+                      <td className="warn-text">{loai === 'tre' ? '+' : '−'}{phut} phút</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+
+            {view === 'ithv' && rep && (
+              <>
+                <p className="muted" style={{ marginTop: 0 }}>Buổi 0 học viên được tính 50% thù lao; có học viên tính 100%.</p>
+                <table>
+                  <thead><tr><th>Số HV</th><th>Ngày</th><th>Khung giờ</th><th>Club</th><th>Lớp</th><th>HLV</th></tr></thead>
+                  <tbody>
+                    {rep.hvList.length === 0 && <tr><td colSpan="6" className="muted">Không có lớp ≤ 5 học viên trong kỳ.</td></tr>}
+                    {rep.hvList.map((h, i) => (
+                      <tr key={i}><td><b>{h.so_hoc_vien}</b>{h.so_hoc_vien === 0 ? <span className="warn-text"> (50%)</span> : null}</td><td>{h.ngay}</td><td>{h.gio}</td><td className="muted">{h.club}</td><td>{h.lop}</td><td className="muted">{h.hlv}</td></tr>
+                    ))}
+                  </tbody>
+                </table>
+              </>
+            )}
+
+            {view === 'trong' && rep && (
+              <>
+                <p className="muted" style={{ marginTop: 0 }}>Các buổi có trong lịch nhưng không ai chấm công (tính các buổi đã qua giờ bắt đầu hơn 15 phút).</p>
+                <table>
+                  <thead><tr><th>Ngày</th><th>Khung giờ</th><th>Club</th><th>Lớp</th><th>HLV phụ trách</th></tr></thead>
+                  <tbody>
+                    {rep.missedList.length === 0 && <tr><td colSpan="5" className="muted">Không có lớp trống trong kỳ.</td></tr>}
+                    {rep.missedList.map((m, i) => (
+                      <tr key={i}><td>{m.ngay}</td><td className="muted">{m.gio}</td><td className="muted">{m.club}</td><td><b>{m.lop}</b></td><td className="muted">{m.hlv}</td></tr>
+                    ))}
+                  </tbody>
+                </table>
+              </>
+            )}
 
             {view === 'list' && (
               <table>
@@ -161,13 +287,7 @@ export default async function ChamCongPage({ searchParams }) {
                 </tbody>
               </table>
             )}
-            <p className="muted" style={{ marginTop: 10 }}>{tu === den ? tu : `${tu} → ${den}`} · {rowsF.length} lượt</p>
-          </div>
-
-          <div className="card">
-            <h2>Thêm chấm công thủ công</h2>
-            <p className="muted">Dùng khi mất điện/wifi khiến giáo viên không tự chấm được. Gõ tên để chọn nhân viên; chọn lớp trong lịch để gắn đúng buổi (bỏ trống = "Lớp khác").</p>
-            <ManualAddForm nvList={nvList || []} clubs={clubs || []} classes={classes} defaultNgay={today} />
+            <p className="muted" style={{ marginTop: 10 }}>{tu === den ? tu : `${tu} → ${den}`}{isReport ? '' : ` · ${rowsF.length} lượt`}</p>
           </div>
         </div>
 

@@ -19,7 +19,6 @@ const NAV = [
     { t: 'Nhân viên', href: '/admin/nhan-vien', icon: 'users' },
   ] },
   { group: 'Hệ thống', items: [
-    { t: 'Báo cáo', href: '/admin/bao-cao', icon: 'chart' },
     { t: 'Nhật ký', href: '/admin/nhat-ky', icon: 'log' },
     { t: 'Sao lưu', href: '/api/admin/backup', icon: 'save' },
   ] },
