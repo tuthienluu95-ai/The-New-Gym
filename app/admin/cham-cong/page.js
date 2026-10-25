@@ -6,7 +6,7 @@ import { buildReport } from '../../../lib/report';
 import { xoaChamCong } from './actions';
 import ManualAddForm from './ManualAddForm';
 import Drawer from '../_shell/Drawer';
-import { TopPayChart } from '../ReportCharts';
+import { TopPayChartLazy as TopPayChart } from '../ChartsLazy';
 
 const REPORT_VIEWS = ['cong', 'tresom', 'ithv', 'trong'];
 
@@ -28,7 +28,10 @@ export default async function ChamCongPage({ searchParams }) {
   const tt = searchParams?.tt || 'all';     // bộ lọc trạng thái
 
   // đọc theo trang 1000 dòng để khoảng ngày dài không bị thiếu lượt
+  // các tab chỉ dùng báo cáo thì không cần đọc danh sách lượt (tránh đọc dữ liệu 2 lần)
+  const needRows = !['cong', 'ithv', 'trong'].includes(view);
   const loadRows = async () => {
+    if (!needRows) return { data: [] };
     let all = [];
     for (let from = 0; ; from += 1000) {
       const { data } = await sb.from('cham_cong')
@@ -134,12 +137,12 @@ export default async function ChamCongPage({ searchParams }) {
       {searchParams?.loi === 'loplop' && <div className="err">Lớp không hợp lệ.</div>}
 
       {/* KPI */}
-      <div className="kpi-row">
+      {needRows && <div className="kpi-row">
         <div className="kpi2"><div className="lbl">Lượt chấm công</div><div className="val">{kLuot}</div><div className="bar"><i style={{ width: pct(kDu, kLuot) + '%' }} /></div><div className="sub">Đủ công {kDu} · {pct(kDu, kLuot)}%</div></div>
         <div className="kpi2 warn"><div className="lbl">Thiếu giờ ra</div><div className="val">{kThieu}</div><div className="bar"><i style={{ width: pct(kThieu, kLuot) + '%' }} /></div><div className="sub">Cần bổ sung</div></div>
         <div className="kpi2"><div className="lbl">Chấm thủ công</div><div className="val">{kThuCong}</div><div className="bar"><i style={{ width: pct(kThuCong, kLuot) + '%' }} /></div><div className="sub">{pct(kThuCong, kLuot)}% tổng lượt</div></div>
         <div className="kpi2 green"><div className="lbl">Tổng giờ dạy</div><div className="val">{kGio}<span style={{ fontSize: 15, color: 'var(--muted)' }}> h</span></div><div className="bar"><i style={{ width: '100%' }} /></div><div className="sub">{tu === den ? tu : `${tu} → ${den}`}</div></div>
-      </div>
+      </div>}
 
       <div className="cc-grid">
         <div className="stack">

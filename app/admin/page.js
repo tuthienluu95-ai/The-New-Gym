@@ -2,7 +2,7 @@ import { supabaseAdmin } from '../../lib/supabase';
 import { requireAdmin } from '../../lib/guard';
 import { vnParts } from '../../lib/time';
 import { buildReport } from '../../lib/report';
-import ReportCharts, { TopPayChart } from './ReportCharts';
+import { ReportChartsLazy as ReportCharts, TopPayChartLazy as TopPayChart } from './ChartsLazy';
 
 export const dynamic = 'force-dynamic';
 const vnd = (n) => (n || 0).toLocaleString('vi-VN');
