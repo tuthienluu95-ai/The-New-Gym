@@ -53,19 +53,28 @@ export default async function TkbPage({ searchParams }) {
   ]);
   const lopList = Array.from(new Set((allLop || []).map((x) => x.ten_lop).filter(Boolean))).sort();
 
+  const exportHref = `/api/admin/export?type=tkb&che_do=${che_do}&ngay=${ngay}&tu=${tu}&den=${den}&club=${fClub}&lop=${encodeURIComponent(fLop)}&hlv=${fHlv}&an=${an ? "1" : ""}&q=${encodeURIComponent(timkiem)}`;
+  const modeHref = (m) => '?' + new URLSearchParams({ che_do: m, ngay, tu, den, club: fClub, lop: fLop, hlv: fHlv, q: timkiem }).toString();
+  const MODES = [{ k: 'tuan', t: 'Theo tuần' }, { k: 'ngay', t: 'Theo ngày' }, { k: 'khoang', t: 'Theo khoảng ngày' }];
+  const head = (
+    <>
+      <div className="page-head">
+        <h1>Thời khoá biểu</h1>
+        <div className="actions"><a className="btn" href={exportHref}>Xuất Excel</a></div>
+      </div>
+      <div className="tabs" style={{ marginBottom: 0 }}>
+        {MODES.map((m) => <a key={m.k} href={modeHref(m.k)} className={'tab' + (che_do === m.k ? ' active' : '')}>{m.t}</a>)}
+      </div>
+    </>
+  );
+
   const filterBar = (
     <form className="filters">
-      <div><label>Tìm kiếm</label><input name="q" defaultValue={timkiem} placeholder="Lớp, HLV, club..." /></div>
-      <div><label>Chế độ xem</label>
-        <select name="che_do" defaultValue={che_do}>
-          <option value="tuan">Theo tuần (lưới)</option>
-          <option value="ngay">Theo ngày</option>
-          <option value="khoang">Theo khoảng ngày</option>
-        </select>
-      </div>
-      <div><label>Ngày (theo ngày)</label><input type="date" name="ngay" defaultValue={ngay} /></div>
-      <div><label>Từ ngày (theo khoảng)</label><input type="date" name="tu" defaultValue={tu} /></div>
-      <div><label>Đến ngày (theo khoảng)</label><input type="date" name="den" defaultValue={den} /></div>
+      <input type="hidden" name="che_do" value={che_do} />
+      <div><label>Tìm kiếm</label><input name="q" defaultValue={timkiem} autoComplete="off" placeholder="Lớp, HLV, club..." /></div>
+      {che_do === 'ngay' && <div><label>Ngày</label><input type="date" name="ngay" defaultValue={ngay} /></div>}
+      {che_do === 'khoang' && <div><label>Từ ngày</label><input type="date" name="tu" defaultValue={tu} /></div>}
+      {che_do === 'khoang' && <div><label>Đến ngày</label><input type="date" name="den" defaultValue={den} /></div>}
       <div><label>Club</label>
         <select name="club" defaultValue={fClub}><option value="">Tất cả club</option>
           {(clubs || []).map((c) => <option key={c.id} value={c.id}>{c.ten_club}</option>)}
@@ -89,7 +98,6 @@ export default async function TkbPage({ searchParams }) {
         </div>
       )}
       <button className="btn primary">Xem</button>
-      <a className="btn" href={`/api/admin/export?type=tkb&che_do=${che_do}&ngay=${ngay}&tu=${tu}&den=${den}&club=${fClub}&lop=${encodeURIComponent(fLop)}&hlv=${fHlv}&an=${an ? "1" : ""}&q=${encodeURIComponent(timkiem)}`}>Xuất Excel</a>
     </form>
   );
 
@@ -112,7 +120,7 @@ export default async function TkbPage({ searchParams }) {
     const chuaXep = lichF.filter((l) => !l.nhan_vien).length;
     return (
       <div className="stack">
-        <h1>Thời khoá biểu</h1>
+        {head}
         <div className="card">{filterBar}
           {chuaXep > 0 && <div className="err">Có {chuaXep} lớp chưa xếp HLV (được tô cảnh báo bên dưới).</div>}
         </div>
@@ -182,7 +190,7 @@ export default async function TkbPage({ searchParams }) {
 
   return (
     <div className="stack">
-      <h1>Thời khoá biểu</h1>
+      {head}
       <div className="card">{filterBar}
         <p className="muted">{title} · {rows.length} buổi</p>
         {rows.filter((r) => r.tt === 'trong').length > 0 && <div className="err">Có {rows.filter((r) => r.tt === 'trong').length} lớp trống (GV không đến) — xem cột Trạng thái.</div>}

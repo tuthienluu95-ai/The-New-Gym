@@ -1,10 +1,10 @@
-'use client';
+﻿'use client';
 import {
   ResponsiveContainer, LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, LabelList,
 } from 'recharts';
 
-const C = ['#1591D6', '#F5A623', '#4C8C2B', '#E0567A', '#8E63C8', '#12B5B0', '#E07B39', '#5A6B7B'];
+const C = ['#00AEEF', '#F5A623', '#4C8C2B', '#E0567A', '#8E63C8', '#12B5B0', '#E07B39', '#5A6B7B'];
 const vnd = (n) => (n || 0).toLocaleString('vi-VN');
 const box = { background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: 16 };
 const h3 = { margin: '0 0 10px', fontSize: 15, fontWeight: 700, color: '#14202B' };
@@ -49,7 +49,7 @@ export default function ReportCharts({ data }) {
             <XAxis dataKey="label" tick={{ fontSize: 11 }} interval="preserveStartEnd" />
             <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
             <Tooltip />
-            <Line type="monotone" dataKey="so" name="Số buổi" stroke="#1591D6" strokeWidth={2} dot={false} />
+            <Line type="monotone" dataKey="so" name="Số buổi" stroke="#00AEEF" strokeWidth={2} dot={false} />
           </LineChart>
         </ResponsiveContainer>
       </Card>
@@ -61,7 +61,7 @@ export default function ReportCharts({ data }) {
             <XAxis dataKey="club" tick={{ fontSize: 10 }} angle={-30} textAnchor="end" height={60} interval={0} />
             <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
             <Tooltip />
-            <Bar dataKey="buoi" name="Số buổi" fill="#1591D6" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="buoi" name="Số buổi" fill="#00AEEF" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </Card>
@@ -81,7 +81,7 @@ export default function ReportCharts({ data }) {
         <ResponsiveContainer width="100%" height={260}>
           <PieChart>
             <Pie data={byStatus} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={55} outerRadius={90} paddingAngle={2}>
-              {byStatus.map((e, i) => <Cell key={i} fill={['#4C8C2B', '#F5A623', '#1591D6', '#E0567A'][i % 4]} />)}
+              {byStatus.map((e, i) => <Cell key={i} fill={['#4C8C2B', '#F5A623', '#00AEEF', '#E0567A'][i % 4]} />)}
             </Pie>
             <Tooltip /><Legend wrapperStyle={{ fontSize: 12 }} />
           </PieChart>

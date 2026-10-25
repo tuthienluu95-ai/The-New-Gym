@@ -2,7 +2,7 @@ import { supabaseAdmin } from '../../lib/supabase';
 import { requireAdmin } from '../../lib/guard';
 import { vnParts } from '../../lib/time';
 import { buildReport } from '../../lib/report';
-import ReportCharts from './ReportCharts';
+import ReportCharts, { TopPayChart } from './ReportCharts';
 
 export const dynamic = 'force-dynamic';
 const vnd = (n) => (n || 0).toLocaleString('vi-VN');
@@ -28,6 +28,7 @@ export default async function Dashboard({ searchParams }) {
 
   const kpis = [
     { l: 'Tổng buổi dạy', v: vnd(t.so_ca) },
+    { l: 'Tổng thù lao', v: vnd(t.tong_tien) + ' đ' },
     { l: 'Tổng lượt học viên', v: vnd(t.tong_hv) },
     { l: 'Tỉ lệ đúng giờ', v: dungGio + '%' },
     { l: 'Chấm công hôm nay', v: vnd(homNay.count) },
@@ -72,6 +73,7 @@ export default async function Dashboard({ searchParams }) {
       </div>
 
       <ReportCharts data={rep} />
+      <TopPayChart topHlv={rep.topHlv} />
     </div>
   );
 }

@@ -252,6 +252,22 @@ tr:last-child td{border-bottom:none}
 }
 .hamb{display:none}
 
+/* ---- Giao diện mới: màu xanh logo, menu tối như bản demo ---- */
+:root{--bg:#F3F6FB;--accent:#00AEEF;--accent-weak:#E0F5FD;--accent-dark:#0284C7}
+body{background-image:none}
+.btn.primary{background:var(--accent-dark);border-color:var(--accent-dark)}
+.btn.primary:hover{background:#0369A1}
+.kpi{border-top-color:var(--accent)}
+.sidebar{background:#0F1B33;border-right:none}
+.sb-brand{padding:18px 14px 8px}
+.sb-logo-img{background:#fff;border-radius:10px;padding:8px 10px;height:52px;max-width:200px;box-sizing:border-box}
+.sb-sub{color:#93A2BF;padding-left:2px}
+.sb-group{color:#8494B3}
+.sb-link{color:#C9D3E6;border-left:none;border-radius:8px;margin:2px 10px;padding:10px 12px}
+.sb-link:hover{background:rgba(255,255,255,.07)}
+.sb-link.active{background:var(--accent-dark);color:#fff}
+.sb-foot{color:#8494B3;border-top-color:rgba(255,255,255,.08)}
+
 /* ---- Giao diện mới: đầu trang, khung trượt, mục cần xử lý, tìm kiếm ---- */
 .page-head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
 .page-head h1{margin:0}
