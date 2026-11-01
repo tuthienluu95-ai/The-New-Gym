@@ -60,7 +60,7 @@ export async function GET(req) {
   if (type === 'cham-cong') {
     const today = vnParts().dateStr;
     const tu = sp.get('tu'), den = sp.get('den'), ngayOne = sp.get('ngay');
-    const sel = 'ngay,gio_vao,gio_ra,trang_thai,ghi_chu,so_hoc_vien,nhan_vien!nv_id(ma_nv,ho_ten,loai_gv,thu_lao),clubs!club_id(ten_club),lich_lop!lich_lop_id(ten_lop,gio_bat_dau,gio_ket_thuc)';
+    const sel = 'ngay,gio_vao,gio_ra,trang_thai,ghi_chu,so_hoc_vien,nhan_vien!nv_id(ma_nv,ho_ten,loai_gv,thu_lao),clubs!club_id(ten_club),lich_lop!lich_lop_id(ten_lop,gio_bat_dau,gio_ket_thuc,nhan_vien!nv_id(ma_nv,ho_ten,loai_gv,thu_lao))';
     let data = [];
     const PAGE = 1000;
     for (let from = 0; ; from += PAGE) {
