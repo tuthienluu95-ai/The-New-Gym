@@ -1,5 +1,5 @@
 import { cookies } from 'next/headers';
-import { withHtmlExport } from '../../../../lib/export-html';
+import { withHtmlExport, overviewHtml } from '../../../../lib/export-html';
 import * as XLSX from 'xlsx';
 import { isAdminToken, ADMIN_COOKIE } from '../../../../lib/auth';
 import { supabaseAdmin } from '../../../../lib/supabase';
@@ -18,7 +18,7 @@ async function xuat(req) {
   const den = sp.get('den') || dateStr;
 
   const sb = supabaseAdmin();
-  const rep = await buildReport(sb, tu, den);
+  const rep = await buildReport(sb, tu, den, sp.get('club') || null);
 
   const aoa = [[`Báo cáo công GROUP-X · ${tu} đến ${den}`], [], ['Mã NV', 'Giáo viên', 'Số ca', 'Số ca trễ', 'Ngày trễ', 'Số ca ra sớm', 'Ngày ra sớm', 'Thù lao/ca (đ)', 'Tổng tiền (đ)']];
   for (const r of rep.list) aoa.push([r.ma_nv, r.ho_ten, r.so_ca, r.so_tre, r.ngay_tre.join(', '), r.so_som, r.ngay_som.join(', '), r.thu_lao, r.tong_tien]);
@@ -46,14 +46,33 @@ async function xuat(req) {
   XLSX.utils.book_append_sheet(wb, ws4, 'Cham cong thu cong');
   const buf = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
 
-  return new Response(buf, {
+  const res = new Response(buf, {
     headers: {
       'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       'Content-Disposition': `attachment; filename="bao-cao-${tu}_den_${den}.xlsx"`,
     },
   });
+  res.baoCao = { rep, tu, den };
+  return res;
 }
 
+const SHEET_TITLES = { 'Bao cao': 'Bảng công theo giáo viên', 'Lop trong': 'Lớp trống', 'So hoc vien': 'Lớp ít học viên', 'Cham cong thu cong': 'Chấm công thủ công' };
+
 export async function GET(req) {
-  return withHtmlExport(req, await xuat(req));
+  const res = await xuat(req);
+  const sp = new URL(req.url).searchParams;
+  if (sp.get('format') !== 'html' || !res.baoCao) return res;
+  if (sp.get('overview') !== '1') return withHtmlExport(req, res, { sheetTitles: SHEET_TITLES, title: 'Báo cáo công' });
+  // xuất từ Bảng điều khiển: trang tổng quan trước, các bảng chi tiết ở các trang sau
+  const { rep, tu, den } = res.baoCao;
+  const sb = supabaseAdmin();
+  const { dateStr } = vnParts();
+  const club = sp.get('club');
+  const [c, homNay, dangDay] = await Promise.all([
+    club ? sb.from('clubs').select('ten_club').eq('id', club).maybeSingle() : { data: null },
+    sb.from('cham_cong').select('id', { count: 'exact', head: true }).eq('ngay', dateStr),
+    sb.from('cham_cong').select('id', { count: 'exact', head: true }).eq('trang_thai', 'dang_lam').eq('ngay', dateStr),
+  ]);
+  const intro = overviewHtml(rep, { tenClub: c.data?.ten_club || 'Tất cả club', tu, den, homNay: homNay.count || 0, dangDay: dangDay.count || 0 });
+  return withHtmlExport(req, res, { intro, sheetTitles: SHEET_TITLES, title: 'Báo cáo vận hành' });
 }
