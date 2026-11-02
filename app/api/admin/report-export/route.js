@@ -1,4 +1,5 @@
 import { cookies } from 'next/headers';
+import { withHtmlExport } from '../../../../lib/export-html';
 import * as XLSX from 'xlsx';
 import { isAdminToken, ADMIN_COOKIE } from '../../../../lib/auth';
 import { supabaseAdmin } from '../../../../lib/supabase';
@@ -7,7 +8,7 @@ import { vnParts } from '../../../../lib/time';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(req) {
+async function xuat(req) {
   const c = cookies().get(ADMIN_COOKIE)?.value;
   if (!isAdminToken(c)) return new Response('Unauthorized', { status: 401 });
 
@@ -51,4 +52,8 @@ export async function GET(req) {
       'Content-Disposition': `attachment; filename="bao-cao-${tu}_den_${den}.xlsx"`,
     },
   });
+}
+
+export async function GET(req) {
+  return withHtmlExport(req, await xuat(req));
 }

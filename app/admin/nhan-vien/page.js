@@ -22,7 +22,7 @@ export default async function NhanVienPage({ searchParams }) {
       <div className="page-head">
         <h1>Nhân viên ({nvF.length})</h1>
         <div className="actions">
-          <a className="btn" href={`/api/admin/export?type=nhan-vien&club=${filterClub}&q=${encodeURIComponent(timkiem)}`}>Xuất Excel</a>
+          <a className="btn" href={`/api/admin/export?type=nhan-vien&club=${filterClub}&q=${encodeURIComponent(timkiem)}`}>Xuất Excel</a><a className="btn" target="_blank" rel="noopener" href={`/api/admin/export?type=nhan-vien&club=${filterClub}&q=${encodeURIComponent(timkiem)}&format=html`}>PDF / HTML</a>
           <Drawer label="+ Thêm nhân viên" title="Thêm nhân viên" defaultOpen={!!searchParams?.loi}>
         <form action={themNV} className="form-grid">
           <div><label>Mã NV</label><input name="ma_nv" required placeholder="VD: 65" /></div>

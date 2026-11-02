@@ -1,4 +1,5 @@
 import { cookies } from 'next/headers';
+import { withHtmlExport } from '../../../../lib/export-html';
 import * as XLSX from 'xlsx';
 import { isAdminToken, ADMIN_COOKIE } from '../../../../lib/auth';
 import { supabaseAdmin } from '../../../../lib/supabase';
@@ -18,7 +19,7 @@ function xlsx(aoa, sheet, filename) {
   return new Response(buf, { headers: { 'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'Content-Disposition': `attachment; filename="${filename}"` } });
 }
 
-export async function GET(req) {
+async function xuat(req) {
   const c = cookies().get(ADMIN_COOKIE)?.value;
   if (!isAdminToken(c)) return new Response('Unauthorized', { status: 401 });
   const sp = new URL(req.url).searchParams;
@@ -108,4 +109,8 @@ export async function GET(req) {
   }
 
   return new Response('Bad type', { status: 400 });
+}
+
+export async function GET(req) {
+  return withHtmlExport(req, await xuat(req));
 }

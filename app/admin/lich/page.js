@@ -39,7 +39,7 @@ export default async function LichPage({ searchParams }) {
       <div className="page-head">
         <h1>Lịch lớp ({lichF.length})</h1>
         <div className="actions">
-          <a className="btn" href={`/api/admin/export?type=lich&club=${fClub}&lop=${encodeURIComponent(fLop)}&hlv=${fHlv}&an=${anKhoa ? "1" : ""}&q=${encodeURIComponent(timkiem)}`}>Xuất Excel</a>
+          <a className="btn" href={`/api/admin/export?type=lich&club=${fClub}&lop=${encodeURIComponent(fLop)}&hlv=${fHlv}&an=${anKhoa ? "1" : ""}&q=${encodeURIComponent(timkiem)}`}>Xuất Excel</a><a className="btn" target="_blank" rel="noopener" href={`/api/admin/export?type=lich&club=${fClub}&lop=${encodeURIComponent(fLop)}&hlv=${fHlv}&an=${anKhoa ? "1" : ""}&q=${encodeURIComponent(timkiem)}&format=html`}>PDF / HTML</a>
           <Drawer label="+ Sắp lịch" title="Thêm buổi lớp">
         <form action={themLich} className="form-grid">
           <div><label>Club</label>

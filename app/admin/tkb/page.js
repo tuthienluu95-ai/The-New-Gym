@@ -64,7 +64,7 @@ export default async function TkbPage({ searchParams }) {
     <>
       <div className="page-head">
         <h1>Thời khoá biểu</h1>
-        <div className="actions"><a className="btn" href={exportHref}>Xuất Excel</a></div>
+        <div className="actions"><a className="btn" href={exportHref}>Xuất Excel</a><a className="btn" target="_blank" rel="noopener" href={exportHref + '&format=html'}>PDF / HTML</a></div>
       </div>
       <div className="tabs" style={{ marginBottom: 0 }}>
         {MODES.map((m) => <a key={m.k} href={modeHref(m.k)} className={'tab' + (che_do === m.k ? ' active' : '')}>{m.t}</a>)}

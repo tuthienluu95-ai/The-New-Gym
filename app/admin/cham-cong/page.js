@@ -123,7 +123,7 @@ export default async function ChamCongPage({ searchParams }) {
       <div className="page-head">
         <h1>Chấm công</h1>
         <div className="actions">
-          <a className="btn" href={view === 'cong' ? `/api/admin/report-export?tu=${tu}&den=${den}` : `/api/admin/export?type=cham-cong&tu=${tu}&den=${den}&q=${encodeURIComponent(timkiem)}`}>Xuất Excel</a>
+          <a className="btn" href={view === 'cong' ? `/api/admin/report-export?tu=${tu}&den=${den}` : `/api/admin/export?type=cham-cong&tu=${tu}&den=${den}&q=${encodeURIComponent(timkiem)}`}>Xuất Excel</a><a className="btn" target="_blank" rel="noopener" href={(view === 'cong' ? `/api/admin/report-export?tu=${tu}&den=${den}` : `/api/admin/export?type=cham-cong&tu=${tu}&den=${den}&q=${encodeURIComponent(timkiem)}`) + '&format=html'}>PDF / HTML</a>
           <Drawer label="+ Chấm công thủ công" title="Chấm công thủ công" defaultOpen={!!searchParams?.loi}
             sub={'Dùng khi mất điện/wifi khiến giáo viên không tự chấm được. Gõ tên để chọn nhân viên; chọn lớp trong lịch để gắn đúng buổi (bỏ trống = "Lớp khác").'}>
             <ManualAddForm nvList={nvList || []} clubs={clubs || []} classes={classes} defaultNgay={today} />

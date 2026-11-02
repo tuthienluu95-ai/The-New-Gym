@@ -17,7 +17,7 @@ export default async function ClubsPage({ searchParams }) {
       <div className="page-head">
         <h1>Club ({clubsF.length})</h1>
         <div className="actions">
-          <a className="btn" href={`/api/admin/export?type=clubs&q=${encodeURIComponent(timkiem)}`}>Xuất Excel</a>
+          <a className="btn" href={`/api/admin/export?type=clubs&q=${encodeURIComponent(timkiem)}`}>Xuất Excel</a><a className="btn" target="_blank" rel="noopener" href={`/api/admin/export?type=clubs&q=${encodeURIComponent(timkiem)}&format=html`}>PDF / HTML</a>
           <Drawer label="+ Thêm club" title="Thêm club">
             <form action={themClub} className="form-grid">
               <div><label>Mã club</label><input name="ma_club" required placeholder="VD: HVT" /></div>

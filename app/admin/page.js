@@ -52,7 +52,7 @@ export default async function Dashboard({ searchParams }) {
             </select>
           </div>
           <button className="btn primary">Xem</button>
-          <a className="btn" href={`/api/admin/report-export?tu=${tu}&den=${den}`}>Xuất Excel</a>
+          <a className="btn" href={`/api/admin/report-export?tu=${tu}&den=${den}`}>Xuất Excel</a><a className="btn" target="_blank" rel="noopener" href={`/api/admin/report-export?tu=${tu}&den=${den}&format=html`}>PDF / HTML</a>
         </form>
       </div>
 
