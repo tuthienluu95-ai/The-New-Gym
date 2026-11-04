@@ -6,6 +6,8 @@ const PAGES = [
   { t: 'Lịch lớp', href: '/admin/lich' }, { t: 'Thời khoá biểu', href: '/admin/tkb' },
   { t: 'Club', href: '/admin/clubs' }, { t: 'Nhân viên', href: '/admin/nhan-vien' },
   { t: 'Nhật ký', href: '/admin/nhat-ky' },
+  { t: 'Lớp ít học viên', href: '/admin/cham-cong?view=ithv' }, { t: 'Lớp trống', href: '/admin/cham-cong?view=trong' },
+  { t: 'Vào trễ – Ra sớm', href: '/admin/cham-cong?view=tresom' }, { t: 'Bảng công & thù lao', href: '/admin/cham-cong?view=cong' },
 ];
 const IconSearch = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M21 21l-4.3-4.3" /><circle cx="11" cy="11" r="8" /></svg>;
 const IconBell = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 01-3.4 0" /></svg>;

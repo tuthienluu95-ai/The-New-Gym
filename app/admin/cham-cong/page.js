@@ -57,6 +57,10 @@ export default async function ChamCongPage({ searchParams }) {
 
   // lọc theo tìm kiếm
   let rowsF = (rows || []).filter((r) => matchQ(`${r.nhan_vien?.ma_nv || ''} ${r.nhan_vien?.ho_ten || ''} ${r.clubs?.ten_club || ''} ${r.lich_lop?.ten_lop || ''} ${r.ghi_chu || ''}`, timkiem));
+  // ô Tìm kiếm áp dụng cả cho các tab tổng hợp (Bảng công, Lớp ít học viên, Lớp trống)
+  const hvF = (rep?.hvList || []).filter((h) => matchQ(h.ngay + ' ' + h.gio + ' ' + h.club + ' ' + h.lop + ' ' + h.hlv, timkiem));
+  const missF = (rep?.missedList || []).filter((m) => matchQ(m.ngay + ' ' + m.gio + ' ' + m.club + ' ' + m.lop + ' ' + m.hlv, timkiem));
+  const listF = (rep?.list || []).filter((r) => matchQ(r.ma_nv + ' ' + r.ho_ten, timkiem));
   const isThieu = (r) => !r.gio_ra && !(r.trang_thai === 'hoan_thanh');
   const isDu = (r) => r.trang_thai === 'hoan_thanh';
   // KPI (trên tập đã lọc tìm kiếm, trước lọc chip)
@@ -148,7 +152,7 @@ export default async function ChamCongPage({ searchParams }) {
         <div className="stack">
           <div className="card">
             <form className="form-grid">
-              <div><label>Tìm kiếm</label><input name="q" defaultValue={timkiem} placeholder="Tên, mã, club, lớp..." /></div>
+              <div><label>Tìm kiếm</label><input name="q" defaultValue={timkiem} autoComplete="off" placeholder="Tên, mã, club, lớp, khung giờ..." /></div>
               <div><label>Từ ngày</label><input type="date" lang="en-GB" name="tu" defaultValue={tu} /></div>
               <div><label>Đến ngày</label><input type="date" lang="en-GB" name="den" defaultValue={den} /></div>
               <input type="hidden" name="tt" value={tt} /><input type="hidden" name="view" value={view} />
@@ -171,8 +175,8 @@ export default async function ChamCongPage({ searchParams }) {
                 <table>
                   <thead><tr><th>Mã</th><th>Giáo viên</th><th>Số ca</th><th>Vào trễ</th><th>Ra sớm</th><th>Lượt HV</th><th>Thù lao/ca</th><th>Tổng tiền</th></tr></thead>
                   <tbody>
-                    {rep.list.length === 0 && <tr><td colSpan="8" className="muted">Chưa có dữ liệu chấm công trong khoảng ngày này.</td></tr>}
-                    {rep.list.map((r) => (
+                    {listF.length === 0 && <tr><td colSpan="8" className="muted">Chưa có dữ liệu chấm công trong khoảng ngày này.</td></tr>}
+                    {listF.map((r) => (
                       <tr key={r.ma_nv + r.ho_ten}>
                         <td><b>{r.ma_nv}</b></td>
                         <td><a href={qs({ view: 'list', tt: 'all', q: r.ho_ten })} title="Xem chi tiết từng ca">{r.ho_ten}</a></td>
@@ -221,8 +225,8 @@ export default async function ChamCongPage({ searchParams }) {
                 <table>
                   <thead><tr><th>Số HV</th><th>Ngày</th><th>Khung giờ</th><th>Club</th><th>Lớp</th><th>HLV</th></tr></thead>
                   <tbody>
-                    {rep.hvList.length === 0 && <tr><td colSpan="6" className="muted">Không có lớp ≤ 5 học viên trong kỳ.</td></tr>}
-                    {rep.hvList.map((h, i) => (
+                    {hvF.length === 0 && <tr><td colSpan="6" className="muted">Không có lớp ≤ 5 học viên trong kỳ.</td></tr>}
+                    {hvF.map((h, i) => (
                       <tr key={i}><td><b>{h.so_hoc_vien}</b>{h.so_hoc_vien === 0 ? <span className="warn-text"> (50%)</span> : null}</td><td>{h.ngay}</td><td>{h.gio}</td><td className="muted">{h.club}</td><td>{h.lop}</td><td className="muted">{h.hlv}</td></tr>
                     ))}
                   </tbody>
@@ -236,8 +240,8 @@ export default async function ChamCongPage({ searchParams }) {
                 <table>
                   <thead><tr><th>Ngày</th><th>Khung giờ</th><th>Club</th><th>Lớp</th><th>HLV phụ trách</th></tr></thead>
                   <tbody>
-                    {rep.missedList.length === 0 && <tr><td colSpan="5" className="muted">Không có lớp trống trong kỳ.</td></tr>}
-                    {rep.missedList.map((m, i) => (
+                    {missF.length === 0 && <tr><td colSpan="5" className="muted">Không có lớp trống trong kỳ.</td></tr>}
+                    {missF.map((m, i) => (
                       <tr key={i}><td>{m.ngay}</td><td className="muted">{m.gio}</td><td className="muted">{m.club}</td><td><b>{m.lop}</b></td><td className="muted">{m.hlv}</td></tr>
                     ))}
                   </tbody>
